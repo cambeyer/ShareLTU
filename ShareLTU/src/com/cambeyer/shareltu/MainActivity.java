@@ -68,6 +68,9 @@ public class MainActivity extends Activity {
 
             if (regid.isEmpty()) {
                 registerInBackground();
+            } else
+            {
+            	Log.v(TAG, "Reminder RegID: " + regid);
             }
             
 	    	AsyncLoader myLoader = new AsyncLoader();
@@ -194,7 +197,7 @@ public class MainActivity extends Activity {
 	private void sendRegistrationIdToBackend() {
 	    // Your implementation here.*************************
 		// Server needs to persist this information... UUID + RegID
-		Log.v(TAG, regid);
+    	Log.v(TAG, "Sent RegID: " + regid);
 	}
 	
 	/**
