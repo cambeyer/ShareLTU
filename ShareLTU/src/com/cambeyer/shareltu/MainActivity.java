@@ -1,7 +1,6 @@
 package com.cambeyer.shareltu;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
