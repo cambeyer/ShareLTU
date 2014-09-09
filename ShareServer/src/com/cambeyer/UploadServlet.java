@@ -5,19 +5,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.List;
- 
-
-
-
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
- 
-
-
-
 
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
@@ -116,7 +108,7 @@ public class UploadServlet extends HttpServlet {
             Message message = new Message.Builder()
             .timeToLive(60*60*24) // one day
             .delayWhileIdle(false)
-            .addData("from", UserManager.getUserByUUID(fromuuid).name)
+            .addData("name", UserManager.getUserByUUID(fromuuid).name)
             .addData("filename", fileName)
             .build();
             sender.send(message, UserManager.getUserByUUID(touuid).regid, 5);

@@ -35,8 +35,8 @@ import android.view.MenuItem;
 
 public class MainActivity extends Activity {
 	
-//	public static final String SERVER_URL = "http://10.0.0.254:8080/ShareLTU/upload";
-	public static final String SERVER_URL = "http://10.5.1.102:8080/ShareLTU/upload";
+	public static final String SERVER_URL = "http://10.0.0.254:8080/ShareLTU/upload";
+//	public static final String SERVER_URL = "http://10.5.1.102:8080/ShareLTU/upload";
     public static final String PROPERTY_REG_ID = "registration_id";		//used for storing shared prefs
     private static final String PROPERTY_APP_VERSION = "appVersion";	//used for storing shared prefs
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
