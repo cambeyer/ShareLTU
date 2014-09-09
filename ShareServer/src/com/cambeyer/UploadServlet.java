@@ -8,11 +8,15 @@ import java.util.List;
  
 
 
+
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
  
+
+
 
 
 import org.apache.commons.fileupload.FileItem;
@@ -30,7 +34,7 @@ public class UploadServlet extends HttpServlet {
     private static final int THRESHOLD_SIZE = 1024 * 1024 * 3;  // 3 MB
     private static final int MAX_FILE_SIZE = 2000000000; // 2 GB
     private static final int MAX_REQUEST_SIZE = 2147483647; // 2.14748 GB
-
+    
     @SuppressWarnings("rawtypes")
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
     {
@@ -60,9 +64,21 @@ public class UploadServlet extends HttpServlet {
         {
             uploadDir.mkdir();
         }
+        
+        //***************************
+        UserObject user = new UserObject();
+        user.name = "Cameron Beyer";
+        user.uuid = "353918058381696";
+        user.regid = "APA91bFnfPedJJ3UwlLQg4zed_zxOVxxm9y6E-4OeY-QLgmRjD6H-lvbHU_ZrXlX2nlvhK4Z5rgf4sNPQG7Nkl93IHJxmYXou9xN6SK2k_HcVlax7veMYSZ039q3WNspzSKybyznoB3TqeQiKQnQ96gHDhRG2s8aew";
+        user.lat = "42.545032";
+        user.lon = "-83.118824";
+        UserManager.add(user);
          
         try
         {
+        	String fileName = "";
+        	String fromuuid = "";
+        	String touuid = "";
             // parses the request's content to extract file data
             List formItems = upload.parseRequest(request);
             Iterator iter = formItems.iterator();
@@ -74,23 +90,36 @@ public class UploadServlet extends HttpServlet {
                 // processes only fields that are not form fields
                 if (!item.isFormField())
                 {
-                    String fileName = new File(item.getName()).getName();
+                    fileName = new File(item.getName()).getName();
                     String filePath = uploadPath + File.separator + fileName;
                     File storeFile = new File(filePath);
                      
                     // saves the file on disk
                     item.write(storeFile);
                 }
+                else
+                {
+                	if (item.getFieldName().equals("fromuuid"))
+                	{
+                		fromuuid = item.getString();
+                	}
+                	else if (item.getFieldName().equals("touuid"))
+                	{
+                		touuid = item.getString();
+                	}
+                }
             }
-            request.setAttribute("message", "Upload has been done successfully!");
+        	
+            request.setAttribute("message", "Upload successful; from UUID: " + fromuuid + ", to UUID: " + touuid);
 
             Sender sender = new Sender(API_KEY);
             Message message = new Message.Builder()
             .timeToLive(60*60*24) // one day
             .delayWhileIdle(false)
-            .addData("key", "New File Transfer")
+            .addData("from", UserManager.getUserByUUID(fromuuid).name)
+            .addData("filename", fileName)
             .build();
-            sender.send(message, "APA91bFnfPedJJ3UwlLQg4zed_zxOVxxm9y6E-4OeY-QLgmRjD6H-lvbHU_ZrXlX2nlvhK4Z5rgf4sNPQG7Nkl93IHJxmYXou9xN6SK2k_HcVlax7veMYSZ039q3WNspzSKybyznoB3TqeQiKQnQ96gHDhRG2s8aew", 5);
+            sender.send(message, UserManager.getUserByUUID(touuid).regid, 5);
         }
         catch (Exception ex)
         {
