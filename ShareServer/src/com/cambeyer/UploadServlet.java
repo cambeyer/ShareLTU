@@ -85,8 +85,12 @@ public class UploadServlet extends HttpServlet {
             request.setAttribute("message", "Upload has been done successfully!");
 
             Sender sender = new Sender(API_KEY);
-            Message message = new Message.Builder().build();
-            Result result = sender.send(message, "APA91bFnfPedJJ3UwlLQg4zed_zxOVxxm9y6E-4OeY-QLgmRjD6H-lvbHU_ZrXlX2nlvhK4Z5rgf4sNPQG7Nkl93IHJxmYXou9xN6SK2k_HcVlax7veMYSZ039q3WNspzSKybyznoB3TqeQiKQnQ96gHDhRG2s8aew", 5);
+            Message message = new Message.Builder()
+            .timeToLive(60*60*24) // one day
+            .delayWhileIdle(false)
+            .addData("key", "New File Transfer")
+            .build();
+            sender.send(message, "APA91bFnfPedJJ3UwlLQg4zed_zxOVxxm9y6E-4OeY-QLgmRjD6H-lvbHU_ZrXlX2nlvhK4Z5rgf4sNPQG7Nkl93IHJxmYXou9xN6SK2k_HcVlax7veMYSZ039q3WNspzSKybyznoB3TqeQiKQnQ96gHDhRG2s8aew", 5);
         }
         catch (Exception ex)
         {
