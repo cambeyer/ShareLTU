@@ -7,20 +7,25 @@ import java.util.Iterator;
 import java.util.List;
  
 
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
  
 
+
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
+
+import com.google.android.gcm.server.*;
  
 public class UploadServlet extends HttpServlet {
 	
     private static final long serialVersionUID = 1L;
  
+    private static final String API_KEY = "AIzaSyDRpMb1qmrGB4dZvGmlU_PqIOx6_ZJC9ok";
     private static final String UPLOAD_DIRECTORY = "data";
     private static final int THRESHOLD_SIZE = 1024 * 1024 * 3;  // 3 MB
     private static final int MAX_FILE_SIZE = 2000000000; // 2 GB
@@ -78,6 +83,10 @@ public class UploadServlet extends HttpServlet {
                 }
             }
             request.setAttribute("message", "Upload has been done successfully!");
+
+            Sender sender = new Sender(API_KEY);
+            Message message = new Message.Builder().build();
+            Result result = sender.send(message, "APA91bFnfPedJJ3UwlLQg4zed_zxOVxxm9y6E-4OeY-QLgmRjD6H-lvbHU_ZrXlX2nlvhK4Z5rgf4sNPQG7Nkl93IHJxmYXou9xN6SK2k_HcVlax7veMYSZ039q3WNspzSKybyznoB3TqeQiKQnQ96gHDhRG2s8aew", 5);
         }
         catch (Exception ex)
         {
