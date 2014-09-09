@@ -2,7 +2,6 @@ package com.cambeyer.shareltu;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -33,33 +32,23 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.TextView;
 
 public class MainActivity extends Activity {
 	
-    public static final String EXTRA_MESSAGE = "message";
-    public static final String PROPERTY_REG_ID = "registration_id";
-    private static final String PROPERTY_APP_VERSION = "appVersion";
+    public static final String PROPERTY_REG_ID = "registration_id";		//used for storing shared prefs
+    private static final String PROPERTY_APP_VERSION = "appVersion";	//used for storing shared prefs
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
 
-    /**
-     * Substitute you own sender ID here. This is the project number you got
-     * from the API Console, as described in "Getting Started."
-     */
     String SENDER_ID = "894263816119";
 
-    /**
-     * Tag used on log messages.
-     */
     static final String TAG = "ShareLTU";
 
-    TextView mDisplay;
     GoogleCloudMessaging gcm;
-    AtomicInteger msgId = new AtomicInteger();
     SharedPreferences prefs;
     Context context;
 
     String regid;
+    String uuid;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +56,9 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);	
 		
         context = getApplicationContext();
+        
+    	uuid = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getDeviceId();
+
 
         // Check device for Play Services APK. If check succeeds, proceed with
         //  GCM registration.
@@ -77,10 +69,10 @@ public class MainActivity extends Activity {
             if (regid.isEmpty()) {
                 registerInBackground();
             }
-	    	//AsyncLoader myLoader = new AsyncLoader();*******************
-			//myLoader.execute();****************8
-        } else {
-            Log.i(TAG, "No valid Google Play Services APK found.");
+            
+	    	AsyncLoader myLoader = new AsyncLoader();
+			myLoader.execute();
+			
         }
 	}
 	
@@ -143,7 +135,7 @@ public class MainActivity extends Activity {
 	private SharedPreferences getGCMPreferences(Context context) {
 	    // This sample app persists the registration ID in shared preferences, but
 	    // how you store the regID in your app is up to you.
-	    return getSharedPreferences(MainActivity.class.getSimpleName(),Context.MODE_PRIVATE);
+	    return getSharedPreferences(MainActivity.class.getSimpleName(), Context.MODE_PRIVATE);
 	}
 	
 	/**
@@ -169,13 +161,11 @@ public class MainActivity extends Activity {
 	    new AsyncTask<Void, Void, Void>() {
 	        @Override
 	        protected Void doInBackground(Void... params) {
-	            String msg = "";
 	            try {
 	                if (gcm == null) {
 	                    gcm = GoogleCloudMessaging.getInstance(context);
 	                }
 	                regid = gcm.register(SENDER_ID);
-	                msg = "Device registered, registration ID=" + regid;
 
 	                // You should send the registration ID to your server over HTTP,
 	                // so it can use GCM/HTTP or CCS to send messages to your app.
@@ -183,14 +173,9 @@ public class MainActivity extends Activity {
 	                // is using accounts.
 	                sendRegistrationIdToBackend();
 
-	                // For this demo: we don't need to send it because the device
-	                // will send upstream messages to a server that echo back the
-	                // message using the 'from' address in the message.
-
 	                // Persist the regID - no need to register again.
 	                storeRegistrationId(context, regid);
 	            } catch (IOException ex) {
-	                msg = "Error :" + ex.getMessage();
 	                // If there is an error, don't just keep trying to register.
 	                // Require the user to click a button again, or perform
 	                // exponential back-off.
@@ -208,6 +193,8 @@ public class MainActivity extends Activity {
 	 */
 	private void sendRegistrationIdToBackend() {
 	    // Your implementation here.*************************
+		// Server needs to persist this information... UUID + RegID
+		Log.v(TAG, regid);
 	}
 	
 	/**
@@ -236,8 +223,7 @@ public class MainActivity extends Activity {
 	    int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
 	    if (resultCode != ConnectionResult.SUCCESS) {
 	        if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
-	            GooglePlayServicesUtil.getErrorDialog(resultCode, this,
-	                    PLAY_SERVICES_RESOLUTION_REQUEST).show();
+	            GooglePlayServicesUtil.getErrorDialog(resultCode, this, PLAY_SERVICES_RESOLUTION_REQUEST).show();
 	        } else {
 	            finish();
 	        }
@@ -284,7 +270,6 @@ public class MainActivity extends Activity {
 
 			            if(file != null)
 			            {
-			            	String uuid = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getDeviceId();
 			            	entityBuilder.addBinaryBody("uploadFile", file, ContentType.create(type), uuid + "_" + file.getName());
 				            entityBuilder.addTextBody("UUID", uuid);
 				            entityBuilder.addTextBody("fileName", file.getName());
