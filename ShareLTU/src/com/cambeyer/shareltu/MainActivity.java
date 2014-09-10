@@ -1,8 +1,12 @@
 package com.cambeyer.shareltu;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.util.Date;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -12,12 +16,11 @@ import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
-
 import com.cambeyer.shareltu.R;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
-
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -25,9 +28,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.MediaStore.MediaColumns;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.Menu;
@@ -35,7 +41,8 @@ import android.view.MenuItem;
 
 public class MainActivity extends Activity {
 	
-	public static final String SERVER_URL = "http://10.0.0.254:8080/ShareLTU/upload";
+	public static final String SERVER_URL = "http://betterdriving.riis.com:8080/ShareLTU/upload";
+//	public static final String SERVER_URL = "http://10.0.0.254:8080/ShareLTU/upload";
 //	public static final String SERVER_URL = "http://10.5.1.102:8080/ShareLTU/upload";
     public static final String PROPERTY_REG_ID = "registration_id";		//used for storing shared prefs
     private static final String PROPERTY_APP_VERSION = "appVersion";	//used for storing shared prefs
@@ -60,6 +67,8 @@ public class MainActivity extends Activity {
         context = getApplicationContext();
         
     	uuid = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getDeviceId();
+    	
+    	Log.v(TAG, "UUID: " + uuid);
 
 
         // Check device for Play Services APK. If check succeeds, proceed with
@@ -241,25 +250,23 @@ public class MainActivity extends Activity {
     {        
         public boolean hideLoadingScreen;
         public ProgressDialog pdLoading;
-
+        public String filename;
+        public String type;
+        
         @Override
         protected void onPreExecute() {
-            super.onPreExecute();
-            
             pdLoading = new ProgressDialog(MainActivity.this);
             pdLoading.setMessage("\tUploading...");
-            	    	            
-	  	    try {
-	            pdLoading.show();
-	  	    } catch (Exception ex) {
-	  	    }
+            filename = "";
+            type = "";
         }
         
         @Override
         protected Void doInBackground(Void... params) {
+        	
 	        Intent intent = getIntent();
 	        String action = intent.getAction();
-	        String type = intent.getType();
+	        type = intent.getType();
 
 	        if (Intent.ACTION_SEND.equals(action) && type != null) {
 	        	try
@@ -267,26 +274,8 @@ public class MainActivity extends Activity {
 	        	    Uri fileUri = (Uri) intent.getParcelableExtra(Intent.EXTRA_STREAM);
 	        	    if (fileUri != null)
 	        	    {
-			            HttpClient client = new DefaultHttpClient();          
-			            HttpPost post = new HttpPost(SERVER_URL);
-			            MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
-			            entityBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-			            File file = new File(fileUri.getPath());
-
-			            if(file != null)
-			            {
-			            	entityBuilder.addBinaryBody("uploadFile", file, ContentType.create(type), uuid + "_" + file.getName());
-				            entityBuilder.addTextBody("fromuuid", uuid);
-				            entityBuilder.addTextBody("touuid", uuid); //*************************************
-				            
-				            HttpEntity entity = entityBuilder.build();
-				            post.setEntity(entity);
-				            HttpResponse response = client.execute(post);
-				            HttpEntity httpEntity = response.getEntity();
-				            String result = EntityUtils.toString(httpEntity);
-				            
-				            Log.v("result", result);
-			            }
+	        	    	Log.v(TAG, "Type: " + type);
+	        	    	doUpload(getInputStream(fileUri));
 	        	    }
 		        }
 		        catch(Exception e)
@@ -296,15 +285,100 @@ public class MainActivity extends Activity {
 	        }
 	        return null;
         }
-
-        @Override
-        protected void onPostExecute(Void result) {
-            super.onPostExecute(result);
+        
+    	public void doUpload(InputStream input)
+    	{            	    	            	  	    
+    		String result = "";
+    		try
+    		{
+    	        HttpClient client = new DefaultHttpClient();          
+    	        HttpPost post = new HttpPost(SERVER_URL);
+    	        MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
+    	        entityBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+    			
+    	    	entityBuilder.addBinaryBody("uploadFile", input, ContentType.create(type), uuid + "_" + filename);
+    	        entityBuilder.addTextBody("fromuuid", uuid);
+    	        entityBuilder.addTextBody("touuid", uuid); //*************************************
+    	        
+    	        HttpEntity entity = entityBuilder.build();
+    	        post.setEntity(entity);
+    	        HttpResponse response = client.execute(post);
+    	        HttpEntity httpEntity = response.getEntity();
+    	        result = EntityUtils.toString(httpEntity);
+    	        
+    		} catch (Exception ex) {
+    		}
+            
+            Log.v("result", result);
             
           	try {
           		pdLoading.dismiss();
           	} catch(Exception ex) {
           	}
-        }
+    	}
+    	
+    	@SuppressLint("SimpleDateFormat")
+		public InputStream getInputStream(final Uri uri) {
+	  	    try {
+	            pdLoading.show();
+	  	    } catch (Exception ex) {
+	  	    }
+	  	    
+    		try
+    		{
+	    	    String[] projection = { MediaColumns.DATA };
+	    	    Cursor cursor = getContentResolver().query(uri, projection, null, null, null);
+	    	    if(cursor != null) {
+	    	    	
+	    	        cursor.moveToFirst();
+	    	        int columnIndex = cursor.getColumnIndexOrThrow(MediaColumns.DATA);
+	    	        String filePath = cursor.getString(columnIndex);
+	    	        cursor.close();
+	    			if (filePath != null)
+	    			{
+	    				filename = new File(filePath).getName();
+	    				return new FileInputStream(filePath);
+	    			}
+	    			else
+	    			{
+	    			    String[] projection2 = { MediaColumns.DATA, MediaColumns.DISPLAY_NAME };
+	    				cursor = getContentResolver().query(uri, projection2, null, null, null);
+	    				if(cursor != null) {
+	    					cursor.moveToFirst();
+	    					columnIndex = cursor.getColumnIndex(MediaColumns.DISPLAY_NAME);
+	    					if (columnIndex != -1) {
+								try {
+				    				filename = new Date().getTime() + "." + type.split("/")[1];
+
+									Bitmap bitmap = android.provider.MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+									
+									ByteBuffer byteBuffer = ByteBuffer.allocate(bitmap.getByteCount());
+									bitmap.copyPixelsToBuffer(byteBuffer);
+									return new ByteArrayInputStream(byteBuffer.array());
+									
+								} catch (Exception ex) {
+									ex.printStackTrace();
+								}
+	    					}
+	    				}
+	    				cursor.close();
+	    			}
+	    	    }
+	    	    else 
+	    	    {
+    				filename = new File(uri.getPath()).getName();
+	    	    	return new FileInputStream(uri.getPath());
+	    	    }
+    		} catch (Exception ex)
+    		{
+    		}
+    		
+          	try {
+          		pdLoading.dismiss();
+          	} catch(Exception ex) {
+          	}
+          	
+    		return null;
+    	}
     } 
 }

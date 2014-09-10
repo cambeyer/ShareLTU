@@ -65,12 +65,21 @@ public class UploadServlet extends HttpServlet {
         user.lat = "42.545032";
         user.lon = "-83.118824";
         UserManager.add(user);
+        
+        UserObject user2 = new UserObject();
+        user2.name = "Adam Drotar";
+        user2.uuid = "99000114946589";
+        user2.regid = "APA91bFlQHqo4rJzYhelJj6ncl09g8j83dTVIIx7I4GZqbujv4b0szdbGfmPbXEYdsvEOkC-QyDQr0Cx3mPijHV_5nIRoP7mjr8IFCWwI2z_a8T-nZzWy5ri7SKRvuQCOHv6X7nf7zukqD7oIa_4QWKEkiEwc9Qv1Q";
+        user2.lat = "42.545032";
+        user2.lon = "-83.118824";
+        UserManager.add(user2);
+        
+    	String fileName = "";
+    	String fromuuid = "";
+    	String touuid = "";
          
         try
         {
-        	String fileName = "";
-        	String fromuuid = "";
-        	String touuid = "";
             // parses the request's content to extract file data
             List formItems = upload.parseRequest(request);
             Iterator iter = formItems.iterator();
@@ -102,20 +111,20 @@ public class UploadServlet extends HttpServlet {
                 }
             }
         	
-            request.setAttribute("message", "Upload successful; from UUID: " + fromuuid + ", to UUID: " + touuid);
+            request.setAttribute("message", "Upload successful; from UUID: " + fromuuid + ", to UUID: " + touuid + "(" + UserManager.getUserByUUID(touuid).regid + ")");
 
             Sender sender = new Sender(API_KEY);
             Message message = new Message.Builder()
             .timeToLive(60*60*24) // one day
             .delayWhileIdle(false)
-            .addData("name", UserManager.getUserByUUID(fromuuid).name)
+            .addData("sendername", UserManager.getUserByUUID(fromuuid).name)
             .addData("filename", fileName)
             .build();
             sender.send(message, UserManager.getUserByUUID(touuid).regid, 5);
         }
         catch (Exception ex)
         {
-            request.setAttribute("message", "There was an error: " + ex.getMessage());
+            request.setAttribute("message", "There was an error: " + ex.getMessage() + "; from UUID: " + fromuuid + ", to UUID: " + touuid + " (" + UserManager.getUserByUUID(touuid).regid + ")");
         }
         getServletContext().getRequestDispatcher("/message.jsp").forward(request, response);
     }
