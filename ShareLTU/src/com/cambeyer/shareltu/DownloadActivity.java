@@ -129,7 +129,7 @@ public class DownloadActivity extends Activity {
     	        HttpResponse response = client.execute(post);
     	        HttpEntity httpEntity = response.getEntity();
     	        result = EntityUtils.toString(httpEntity);
-    	        
+    	            	        
     		} catch (Exception ex) {
     			ex.printStackTrace();
     		}
