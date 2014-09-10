@@ -3,6 +3,7 @@ package com.cambeyer;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -74,7 +75,7 @@ public class UploadServlet extends HttpServlet {
         user2.lon = "-83.118824";
         UserManager.add(user2);
         
-    	String fileName = "";
+    	String filename = "";
     	String fromuuid = "";
     	String touuid = "";
     	String type = "";
@@ -92,8 +93,8 @@ public class UploadServlet extends HttpServlet {
                 // processes only fields that are not form fields
                 if (!item.isFormField())
                 {
-                    fileName = new File(item.getName()).getName();
-                    String filePath = uploadPath + File.separator + fileName;
+                    filename = new File(item.getName()).getName();
+                    String filePath = uploadPath + File.separator + filename;
                     File storeFile = new File(filePath);
                      
                     // saves the file on disk
@@ -118,12 +119,19 @@ public class UploadServlet extends HttpServlet {
         	
             request.setAttribute("message", "Upload successful; from UUID: " + fromuuid + ", to UUID: " + touuid + "(" + UserManager.getUserByUUID(touuid).regid + ")");
 
+            FileObject file = new FileObject();
+            file.filename = filename;
+            file.fromuuid = fromuuid;
+            file.touuid = touuid;
+            file.timestamp = new Date();
+            FileManager.add(file);
+            
             Sender sender = new Sender(API_KEY);
             Message message = new Message.Builder()
             .timeToLive(60*60*24) // one day
             .delayWhileIdle(false)
             .addData("sendername", UserManager.getUserByUUID(fromuuid).name)
-            .addData("filename", fileName)
+            .addData("filename", filename)
             .addData("type", type)
             .build();
             sender.send(message, UserManager.getUserByUUID(touuid).regid, 5);

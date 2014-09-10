@@ -88,7 +88,6 @@ public class DownloadActivity extends Activity {
         protected Void doInBackground(Void... params) {
         	
 	        Intent intent = getIntent();
-	        
 	        Bundle extras = intent.getExtras();
 	        
 	        if (extras != null) {
@@ -132,6 +131,7 @@ public class DownloadActivity extends Activity {
     	        result = EntityUtils.toString(httpEntity);
     	        
     		} catch (Exception ex) {
+    			ex.printStackTrace();
     		}
             
             Log.v("result", result);
