@@ -112,7 +112,8 @@ int id strict_sandbox 0x7f070009
 int id terrain 0x7f070003
 int id wrap_content 0x7f07000d
 int integer google_play_services_version 0x7f080000
-int layout activity_main 0x7f030000
+int layout activity_download 0x7f030000
+int layout activity_main 0x7f030001
 int menu main 0x7f0a0000
 int string action_settings 0x7f050022
 int string app_name 0x7f050020

@@ -77,6 +77,7 @@ public class UploadServlet extends HttpServlet {
     	String fileName = "";
     	String fromuuid = "";
     	String touuid = "";
+    	String type = "";
          
         try
         {
@@ -108,6 +109,10 @@ public class UploadServlet extends HttpServlet {
                 	{
                 		touuid = item.getString();
                 	}
+                	else if (item.getFieldName().equals("type"))
+                	{
+                		type = item.getString();
+                	}
                 }
             }
         	
@@ -119,6 +124,7 @@ public class UploadServlet extends HttpServlet {
             .delayWhileIdle(false)
             .addData("sendername", UserManager.getUserByUUID(fromuuid).name)
             .addData("filename", fileName)
+            .addData("type", type)
             .build();
             sender.send(message, UserManager.getUserByUUID(touuid).regid, 5);
         }

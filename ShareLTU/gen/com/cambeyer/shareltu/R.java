@@ -433,7 +433,8 @@ containing a value of this type.
         public static final int google_play_services_version=0x7f080000;
     }
     public static final class layout {
-        public static final int activity_main=0x7f030000;
+        public static final int activity_download=0x7f030000;
+        public static final int activity_main=0x7f030001;
     }
     public static final class menu {
         public static final int main=0x7f0a0000;

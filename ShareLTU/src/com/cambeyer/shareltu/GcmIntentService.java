@@ -38,10 +38,13 @@ public class GcmIntentService extends IntentService {
              * recognize.
              */
         	if (GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE.equals(messageType)) {
-                // ************************
 
-                // Post notification of received message.
-                sendNotification(extras.getString("sendername") + " sends " + extras.getString("filename"));
+        		// Post notification of received message.
+        		String sendername = extras.getString("sendername");
+        		String filename = extras.getString("filename");
+        		String type = extras.getString("type");
+                sendNotification(sendername + " sends " + filename, sendername, filename, type);
+                
                 Log.i(TAG, "Received: " + extras.toString());
             }
         }
@@ -50,14 +53,19 @@ public class GcmIntentService extends IntentService {
     }
 
     // Put the message into a notification and post it.
-    private void sendNotification(String msg) {
+    private void sendNotification(String msg, String sendername, String filename, String type) {
         mNotificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
 
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), 0);
+        Intent i = new Intent(this, DownloadActivity.class);
+        i.putExtra("sendername", sendername);
+        i.putExtra("filename", filename);
+        i.putExtra("type", type);
+        
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, i, 0);
 
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
 	        .setSmallIcon(R.drawable.ic_launcher)
-	        .setContentTitle("GCM Notification")
+	        .setContentTitle("Incoming file transfer")
 	        .setStyle(new NotificationCompat.BigTextStyle()
 	        .bigText(msg))
 	        .setContentText(msg);

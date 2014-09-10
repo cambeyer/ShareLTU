@@ -313,6 +313,7 @@ public class MainActivity extends Activity {
     	    	entityBuilder.addBinaryBody("uploadFile", input, ContentType.create(type), uuid + "_" + filename);
     	        entityBuilder.addTextBody("fromuuid", uuid);
     	        entityBuilder.addTextBody("touuid", uuid); //*************************************
+    	        entityBuilder.addTextBody("type", type);
     	        
     	        HttpEntity entity = entityBuilder.build();
     	        post.setEntity(entity);
