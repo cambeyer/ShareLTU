@@ -8,6 +8,4 @@ public class UserObject {
 	public String lat = "";
 	public String lon = "";
 	
-	public UserObject() {
-	}
 }

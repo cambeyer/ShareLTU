@@ -13,12 +13,11 @@
     <url-pattern>/upload</url-pattern>
   </servlet-mapping>
   <servlet>
-    <servlet-name>Jersey Web Application</servlet-name>
-    <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
-    <load-on-startup>1</load-on-startup>
+    <servlet-name>DownloadServlet</servlet-name>
+    <servlet-class>com.cambeyer.DownloadServlet</servlet-class>
   </servlet>
   <servlet-mapping>
-    <servlet-name>Jersey Web Application</servlet-name>
-    <url-pattern>/download/*</url-pattern>
+    <servlet-name>DownloadServlet</servlet-name>
+    <url-pattern>/download</url-pattern>
   </servlet-mapping>
 </web-app>

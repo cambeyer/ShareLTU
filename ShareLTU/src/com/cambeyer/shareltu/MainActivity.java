@@ -257,6 +257,12 @@ public class MainActivity extends Activity {
         protected void onPreExecute() {
             pdLoading = new ProgressDialog(MainActivity.this);
             pdLoading.setMessage("\tUploading...");
+            
+	  	    try {
+	            pdLoading.show();
+	  	    } catch (Exception ex) {
+	  	    }
+	  	    
             filename = "";
             type = "";
         }
@@ -286,6 +292,14 @@ public class MainActivity extends Activity {
 	        return null;
         }
         
+        @Override
+        protected void onPostExecute(Void result) {
+          	try {
+          		pdLoading.dismiss();
+          	} catch(Exception ex) {
+          	}
+        }
+        
     	public void doUpload(InputStream input)
     	{            	    	            	  	    
     		String result = "";
@@ -310,20 +324,10 @@ public class MainActivity extends Activity {
     		}
             
             Log.v("result", result);
-            
-          	try {
-          		pdLoading.dismiss();
-          	} catch(Exception ex) {
-          	}
     	}
     	
     	@SuppressLint("SimpleDateFormat")
-		public InputStream getInputStream(final Uri uri) {
-	  	    try {
-	            pdLoading.show();
-	  	    } catch (Exception ex) {
-	  	    }
-	  	    
+		public InputStream getInputStream(final Uri uri) {  	    
     		try
     		{
 	    	    String[] projection = { MediaColumns.DATA };
@@ -373,13 +377,7 @@ public class MainActivity extends Activity {
 	    	    }
     		} catch (Exception ex)
     		{
-    		}
-    		
-          	try {
-          		pdLoading.dismiss();
-          	} catch(Exception ex) {
-          	}
-          	
+    		}          	
     		return null;
     	}
     } 
