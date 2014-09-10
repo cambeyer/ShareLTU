@@ -22,7 +22,7 @@ public class UploadServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
  
     private static final String API_KEY = "AIzaSyDRpMb1qmrGB4dZvGmlU_PqIOx6_ZJC9ok";
-    private static final String UPLOAD_DIRECTORY = "data";
+    public static final String UPLOAD_DIRECTORY = "data";
     private static final int THRESHOLD_SIZE = 1024 * 1024 * 3;  // 3 MB
     private static final int MAX_FILE_SIZE = 2000000000; // 2 GB
     private static final int MAX_REQUEST_SIZE = 2147483647; // 2.14748 GB
