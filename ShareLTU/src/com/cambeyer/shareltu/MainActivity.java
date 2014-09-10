@@ -349,6 +349,8 @@ public class MainActivity extends Activity {
 	    					if (columnIndex != -1) {
 								try {
 				    				filename = new Date().getTime() + "." + type.split("/")[1];
+				    				
+				    				Log.v(TAG, "Fetching data from: " + uri);
 
 									Bitmap bitmap = android.provider.MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
 									
