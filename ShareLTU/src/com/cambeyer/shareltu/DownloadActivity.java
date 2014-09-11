@@ -108,8 +108,7 @@ public class DownloadActivity extends Activity implements ConnectionCallbacks, O
                 }
                 // Create the initial metadata - MIME type and title.
                 // Note that the user will be able to change the title later.
-                MetadataChangeSet metadataChangeSet = new MetadataChangeSet.Builder()
-                        .setMimeType(type).setTitle(filename).build();
+                MetadataChangeSet metadataChangeSet = new MetadataChangeSet.Builder().setMimeType(type).setTitle(filename).build();
                 // Create an intent for the file chooser, and start it.
                 IntentSender intentSender = Drive.DriveApi
                         .newCreateFileActivityBuilder()

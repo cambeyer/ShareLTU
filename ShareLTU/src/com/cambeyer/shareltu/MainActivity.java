@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Date;
 
 import org.apache.http.HttpEntity;
@@ -44,8 +45,7 @@ import android.view.MenuItem;
 public class MainActivity extends Activity {
 	
 	public static final String SERVER_URL = "http://betterdriving.riis.com:8080/ShareLTU/upload";
-//	public static final String SERVER_URL = "http://10.0.0.254:8080/ShareLTU/upload";
-//	public static final String SERVER_URL = "http://10.5.1.102:8080/ShareLTU/upload";
+
     public static final String PROPERTY_REG_ID = "registration_id";		//used for storing shared prefs
     private static final String PROPERTY_APP_VERSION = "appVersion";	//used for storing shared prefs
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
@@ -58,8 +58,13 @@ public class MainActivity extends Activity {
     SharedPreferences prefs;
     Context context;
 
-    String regid;
-    String uuid;
+    public String regid;
+    public String uuid;
+    
+    public String type;
+	public boolean[] itemsChecked;
+    public String recipients = "";
+    public Uri fileUri;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -86,9 +91,7 @@ public class MainActivity extends Activity {
             	Log.v(TAG, "Reminder RegID: " + regid);
             }
             
-	    	AsyncLoader myLoader = new AsyncLoader();
-			myLoader.execute();
-			
+            startSend();
         }
 	}
 	
@@ -253,7 +256,7 @@ public class MainActivity extends Activity {
         public boolean hideLoadingScreen;
         public ProgressDialog pdLoading;
         public String filename;
-        public String type;
+
         
         @Override
         protected void onPreExecute() {
@@ -266,48 +269,13 @@ public class MainActivity extends Activity {
 	  	    }
 	  	    
             filename = "";
-            type = "";
         }
         
         @Override
         protected Void doInBackground(Void... params) {
         	
-	        Intent intent = getIntent();
-	        String action = intent.getAction();
-	        type = intent.getType();
+	    	doUpload(getInputStream(fileUri));
 
-	        if (Intent.ACTION_SEND.equals(action) && type != null) {
-	        	try
-		        {
-	        	    Uri fileUri = (Uri) intent.getParcelableExtra(Intent.EXTRA_STREAM);
-	        	    if (fileUri != null)
-	        	    {
-	        	    	Log.v(TAG, "Type: " + type);
-	        	    	doUpload(getInputStream(fileUri));
-	        	    }
-	        	    else
-	        	    {
-	        	    	Log.v(TAG, "Nothing to send");
-	        	        runOnUiThread(new Runnable() {
-	                        public void run() {
-         	        	    	AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-	    	        	    	builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-	    	        	    	           public void onClick(DialogInterface dialog, int id) {
-	    	        	    	               finish();
-	    	        	    	           }
-	    	        	    	       });
-	    	        	    	builder.setMessage("You tried to share from an application that doesn't have a file to send.");
-	    	        	        builder.setTitle("No file selected");
-	    	        	    	builder.show();
-	                       }
-	                   });
-	        	    }
-		        }
-		        catch(Exception e)
-		        {
-		            e.printStackTrace();
-		        }
-	        }
 	        return null;
         }
         
@@ -320,7 +288,9 @@ public class MainActivity extends Activity {
         }
         
     	public void doUpload(InputStream input)
-    	{            	    	            	  	    
+    	{            	
+	    	Log.v(TAG, "Type: " + type);
+	    	Log.v(TAG, "Recipients: " + recipients);
     		String result = "";
     		try
     		{
@@ -331,7 +301,7 @@ public class MainActivity extends Activity {
     			
     	    	entityBuilder.addBinaryBody("uploadFile", input, ContentType.create(type), uuid + "_" + filename);
     	        entityBuilder.addTextBody("fromuuid", uuid);
-    	        entityBuilder.addTextBody("touuid", uuid); //*************************************
+    	        entityBuilder.addTextBody("touuid", recipients);
     	        entityBuilder.addTextBody("type", type);
     	        
     	        HttpEntity entity = entityBuilder.build();
@@ -381,4 +351,77 @@ public class MainActivity extends Activity {
     		return null;
     	}
     } 
+	
+	public void chooseRecipients() {
+		//************ fetch from server
+    	ArrayList<String> uuids = new ArrayList<String>();
+    	uuids.add("353918058381696");
+    	uuids.add("99000114946589");
+    	
+    	final CharSequence[] items = uuids.toArray(new CharSequence[uuids.size()]);
+    	itemsChecked = new boolean[items.length];
+    	
+    	AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+    	builder.setTitle("Choose Recipients");
+    	
+    	builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                for (int i = 0; i < items.length; i++) {
+	                if (itemsChecked[i]) {
+	                	recipients = recipients + items[i] + " ";
+	                    itemsChecked[i] = false;
+	                }
+                }
+    	    	AsyncLoader myLoader = new AsyncLoader();
+    			myLoader.execute();
+            }
+        });
+    	
+    	builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+               finish();
+            }
+        });
+    	
+    	builder.setMultiChoiceItems(items, itemsChecked, new DialogInterface.OnMultiChoiceClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+					itemsChecked[which] = isChecked;	
+			}
+		});
+    	builder.show();
+	}
+	
+	public void startSend() {
+        Intent intent = getIntent();
+        String action = intent.getAction();
+        type = intent.getType();
+
+        if (Intent.ACTION_SEND.equals(action) && type != null) {
+        	try
+	        {
+        	    fileUri = (Uri) intent.getParcelableExtra(Intent.EXTRA_STREAM);
+        	    if (fileUri != null)
+        	    {
+        	    	chooseRecipients();
+        	    }
+        	    else
+        	    {
+        	    	AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        	    	builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+	    	            public void onClick(DialogInterface dialog, int id) {
+	    	               finish();
+	    	            }
+	    	        });
+        	    	builder.setMessage("You tried to share from an application that doesn't have a file to send.");
+        	        builder.setTitle("No file selected");
+        	    	builder.show();
+        	    }
+	        }
+	        catch(Exception e)
+	        {
+	            e.printStackTrace();
+	        }
+        }
+	}
 }
