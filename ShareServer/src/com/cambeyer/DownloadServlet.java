@@ -77,8 +77,20 @@ public class DownloadServlet extends HttpServlet {
 		{
 			if (candidates.get(i).filename.equals(filename))
 			{
+				String output = new BASE64Encoder().encode(IOUtils.toByteArray(new FileInputStream(dirPath + filename))).replace("\r", "").replace("\n", "");
 		        PrintWriter writer = response.getWriter();
-		        writer.println(new BASE64Encoder().encode(IOUtils.toByteArray(new FileInputStream(dirPath + filename))).replace("\r", "").replace("\n", ""));
+//				String tempout = "";
+//				for (int j = 0; j < output.length(); j++)
+//				{
+//					tempout += output.charAt(j);
+//					if (tempout.length() % 100 == 0 || j + 1 == output.length())
+//					{
+//						writer.print(tempout);
+//						writer.flush();
+//						tempout = "";
+//					}
+//				}
+		        writer.print(output);
 		        writer.flush();
 			}
 		}
