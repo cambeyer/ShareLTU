@@ -1,12 +1,14 @@
 package com.cambeyer.shareltu;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Date;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -16,10 +18,12 @@ import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
+
 import com.cambeyer.shareltu.R;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -30,6 +34,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -349,6 +354,7 @@ public class MainActivity extends Activity {
 	    			    String[] projection2 = { MediaColumns.DATA, MediaColumns.DISPLAY_NAME };
 	    				Cursor cursor2 = getContentResolver().query(uri, projection2, null, null, null);
 	    				if(cursor2 != null) {
+	    					
 	    					cursor2.moveToFirst();
 	    					columnIndex = cursor2.getColumnIndex(MediaColumns.DISPLAY_NAME);
 	    					cursor2.close();
@@ -358,12 +364,8 @@ public class MainActivity extends Activity {
 				    				
 				    				Log.v(TAG, "Fetching data from: " + uri);
 
-									Bitmap bitmap = android.provider.MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
-									
-									ByteBuffer byteBuffer = ByteBuffer.allocate(bitmap.getByteCount());
-									bitmap.copyPixelsToBuffer(byteBuffer);
-									return new ByteArrayInputStream(byteBuffer.array());
-									
+				    				return getContentResolver().openInputStream(uri);
+				    				
 								} catch (Exception ex) {
 									ex.printStackTrace();
 								}
