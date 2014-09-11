@@ -368,7 +368,7 @@ public class MainActivity extends Activity {
             public void onClick(DialogInterface dialog, int which) {
                 for (int i = 0; i < items.length; i++) {
 	                if (itemsChecked[i]) {
-	                	recipients = recipients + items[i] + " ";
+	                	recipients = recipients + items[i] + ",";
 	                    itemsChecked[i] = false;
 	                }
                 }

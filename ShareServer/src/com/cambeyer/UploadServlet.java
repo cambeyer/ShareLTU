@@ -117,7 +117,7 @@ public class UploadServlet extends HttpServlet {
                 }
             }
         	
-            request.setAttribute("message", "Upload successful; from UUID: " + fromuuid + ", to UUID: " + touuid + "(" + UserManager.getUserByUUID(touuid).regid + ")");
+            request.setAttribute("message", "Upload successful; from UUID: " + fromuuid + ", to UUIDs: " + touuid);
 
             FileObject file = new FileObject();
             file.filename = filename;
@@ -127,15 +127,20 @@ public class UploadServlet extends HttpServlet {
             file.timestamp = new Date();
             FileManager.add(file);
             
-            Sender sender = new Sender(API_KEY);
-            Message message = new Message.Builder()
-            .timeToLive(60*60*24) // one day
-            .delayWhileIdle(false)
-            .addData("sendername", UserManager.getUserByUUID(fromuuid).name)
-            .addData("filename", filename)
-            .addData("type", type)
-            .build();
-            sender.send(message, UserManager.getUserByUUID(touuid).regid, 5);
+            String[] recipients = touuid.split(",");
+            
+            for (int i = 0; i < recipients.length; i++)
+            {
+	            Sender sender = new Sender(API_KEY);
+	            Message message = new Message.Builder()
+	            .timeToLive(60*60*24) // one day
+	            .delayWhileIdle(false)
+	            .addData("sendername", UserManager.getUserByUUID(fromuuid).name)
+	            .addData("filename", filename)
+	            .addData("type", type)
+	            .build();
+	            sender.send(message, UserManager.getUserByUUID(recipients[i]).regid, 5);
+            }
         }
         catch (Exception ex)
         {
