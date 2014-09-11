@@ -275,6 +275,7 @@ public class MainActivity extends Activity {
         protected Void doInBackground(Void... params) {
         	
 	    	doUpload(getInputStream(fileUri));
+	    	finish();
 
 	        return null;
         }
