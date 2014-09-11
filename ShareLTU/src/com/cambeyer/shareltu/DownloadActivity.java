@@ -267,8 +267,7 @@ public class DownloadActivity extends Activity implements ConnectionCallbacks, O
     	        HttpResponse response = client.execute(post);
     	        HttpEntity httpEntity = response.getEntity();
     	        
-    	        result = EntityUtils.toString(httpEntity);
-                saveFileToDrive(Base64.decode(result), filename.split("_", 2)[1], type);
+                saveFileToDrive(EntityUtils.toByteArray(httpEntity), filename.split("_", 2)[1], type);
     	            	        
     		} catch (Exception ex) {
     			ex.printStackTrace();

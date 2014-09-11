@@ -123,6 +123,7 @@ public class UploadServlet extends HttpServlet {
             file.filename = filename;
             file.fromuuid = fromuuid;
             file.touuid = touuid;
+            file.type = type;
             file.timestamp = new Date();
             FileManager.add(file);
             

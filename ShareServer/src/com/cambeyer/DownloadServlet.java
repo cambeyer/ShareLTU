@@ -1,9 +1,10 @@
 package com.cambeyer;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -16,9 +17,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.apache.commons.io.IOUtils;
-
-import Decoder.BASE64Encoder;
  
 public class DownloadServlet extends HttpServlet {
 	
@@ -27,6 +25,8 @@ public class DownloadServlet extends HttpServlet {
     private static final int THRESHOLD_SIZE = 1024 * 1024 * 3;  // 3 MB
     private static final int MAX_FILE_SIZE = 2000000000; // 2 GB
     private static final int MAX_REQUEST_SIZE = 2147483647; // 2.14748 GB
+    
+    private static final int DEFAULT_BUFFER_SIZE = 10240; // 10KB.
      
 	@SuppressWarnings("rawtypes")
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
@@ -77,21 +77,36 @@ public class DownloadServlet extends HttpServlet {
 		{
 			if (candidates.get(i).filename.equals(filename))
 			{
-				String output = new BASE64Encoder().encode(IOUtils.toByteArray(new FileInputStream(dirPath + filename))).replace("\r", "").replace("\n", "");
-		        PrintWriter writer = response.getWriter();
-//				String tempout = "";
-//				for (int j = 0; j < output.length(); j++)
-//				{
-//					tempout += output.charAt(j);
-//					if (tempout.length() % 100 == 0 || j + 1 == output.length())
-//					{
-//						writer.print(tempout);
-//						writer.flush();
-//						tempout = "";
-//					}
-//				}
-		        writer.print(output);
-		        writer.flush();
+		        // Decode the file name (might contain spaces and on) and prepare file object.
+		        File file = new File(dirPath + filename);
+
+		        // Init servlet response.
+		        response.reset();
+		        response.setBufferSize(DEFAULT_BUFFER_SIZE);
+		        response.setContentType(candidates.get(i).type);
+		        response.setHeader("Content-Length", String.valueOf(file.length()));
+		        response.setHeader("Content-Disposition", "attachment; filename=\"" + file.getName() + "\"");
+
+		        // Prepare streams.
+		        BufferedInputStream input = null;
+		        BufferedOutputStream output = null;
+
+		        try {
+		            // Open streams.
+		            input = new BufferedInputStream(new FileInputStream(file), DEFAULT_BUFFER_SIZE);
+		            output = new BufferedOutputStream(response.getOutputStream(), DEFAULT_BUFFER_SIZE);
+
+		            // Write file contents to response.
+		            byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
+		            int length;
+		            while ((length = input.read(buffer)) > 0) {
+		                output.write(buffer, 0, length);
+		            }
+		        } finally {
+		            // Gently close streams.
+		            output.close();
+		            input.close();
+		        }
 			}
 		}
     }
