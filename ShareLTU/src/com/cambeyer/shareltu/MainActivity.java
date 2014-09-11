@@ -1,12 +1,9 @@
 package com.cambeyer.shareltu;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.util.Date;
 
 import org.apache.http.HttpEntity;
@@ -26,15 +23,15 @@ import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -288,6 +285,23 @@ public class MainActivity extends Activity {
 	        	    	Log.v(TAG, "Type: " + type);
 	        	    	doUpload(getInputStream(fileUri));
 	        	    }
+	        	    else
+	        	    {
+	        	    	Log.v(TAG, "Nothing to send");
+	        	        runOnUiThread(new Runnable() {
+	                        public void run() {
+         	        	    	AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+	    	        	    	builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+	    	        	    	           public void onClick(DialogInterface dialog, int id) {
+	    	        	    	               finish();
+	    	        	    	           }
+	    	        	    	       });
+	    	        	    	builder.setMessage("You tried to share from an application that doesn't have a file to send.");
+	    	        	        builder.setTitle("No file selected");
+	    	        	    	builder.show();
+	                       }
+	                   });
+	        	    }
 		        }
 		        catch(Exception e)
 		        {
@@ -351,26 +365,9 @@ public class MainActivity extends Activity {
 	    			}
 	    			else
 	    			{
-	    			    String[] projection2 = { MediaColumns.DATA, MediaColumns.DISPLAY_NAME };
-	    				Cursor cursor2 = getContentResolver().query(uri, projection2, null, null, null);
-	    				if(cursor2 != null) {
-	    					
-	    					cursor2.moveToFirst();
-	    					columnIndex = cursor2.getColumnIndex(MediaColumns.DISPLAY_NAME);
-	    					cursor2.close();
-	    					if (columnIndex != -1) {
-								try {
-				    				filename = new Date().getTime() + "." + type.split("/")[1];
-				    				
-				    				Log.v(TAG, "Fetching data from: " + uri);
-
-				    				return getContentResolver().openInputStream(uri);
-				    				
-								} catch (Exception ex) {
-									ex.printStackTrace();
-								}
-	    					}
-	    				}
+	    				filename = new Date().getTime() + "." + type.split("/")[1];
+	    				Log.v(TAG, "Fetching data from: " + uri);
+	    				return getContentResolver().openInputStream(uri);
 	    			}
 	    	    }
 	    	    else 
