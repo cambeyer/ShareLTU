@@ -116,11 +116,11 @@ public class DownloadActivity extends Activity implements ConnectionCallbacks, O
                         .setInitialContents(result.getContents())
                         .build(mGoogleApiClient);
                 try {
-                    startIntentSenderForResult(
-                            intentSender, REQUEST_CODE_CREATOR, null, 0, 0, 0);
+                    startIntentSenderForResult(intentSender, REQUEST_CODE_CREATOR, null, 0, 0, 0);
                 } catch (SendIntentException e) {
                     Log.i(TAG, "Failed to launch file chooser.");
                 }
+                finish();
             }
         });
     }

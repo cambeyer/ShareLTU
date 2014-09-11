@@ -73,6 +73,8 @@ public class MainActivity extends Activity {
 		
         context = getApplicationContext();
         
+        startService(new Intent(MainActivity.this, AndroidLocationService.class));
+        
     	uuid = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getDeviceId();
     	
     	Log.v(TAG, "UUID: " + uuid);
