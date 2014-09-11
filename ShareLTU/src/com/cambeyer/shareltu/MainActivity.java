@@ -347,10 +347,11 @@ public class MainActivity extends Activity {
 	    			else
 	    			{
 	    			    String[] projection2 = { MediaColumns.DATA, MediaColumns.DISPLAY_NAME };
-	    				cursor = getContentResolver().query(uri, projection2, null, null, null);
-	    				if(cursor != null) {
-	    					cursor.moveToFirst();
-	    					columnIndex = cursor.getColumnIndex(MediaColumns.DISPLAY_NAME);
+	    				Cursor cursor2 = getContentResolver().query(uri, projection2, null, null, null);
+	    				if(cursor2 != null) {
+	    					cursor2.moveToFirst();
+	    					columnIndex = cursor2.getColumnIndex(MediaColumns.DISPLAY_NAME);
+	    					cursor2.close();
 	    					if (columnIndex != -1) {
 								try {
 				    				filename = new Date().getTime() + "." + type.split("/")[1];
@@ -368,7 +369,6 @@ public class MainActivity extends Activity {
 								}
 	    					}
 	    				}
-	    				cursor.close();
 	    			}
 	    	    }
 	    	    else 
