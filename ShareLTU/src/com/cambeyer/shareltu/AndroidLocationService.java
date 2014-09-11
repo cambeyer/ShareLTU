@@ -64,7 +64,7 @@ public class AndroidLocationService extends Service {
 	    Log.v(TAG, "Service Started");
 	
 	    locationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
-	    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10, listener);
+	    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1 * 60 * 1000, 10, listener);
 	    
 	    return START_STICKY;
 	}
