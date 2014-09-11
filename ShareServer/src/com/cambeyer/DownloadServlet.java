@@ -17,6 +17,8 @@ import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
+
+import Decoder.BASE64Encoder;
  
 public class DownloadServlet extends HttpServlet {
 	
@@ -76,7 +78,7 @@ public class DownloadServlet extends HttpServlet {
 			if (candidates.get(i).filename.equals(filename))
 			{
 		        PrintWriter writer = response.getWriter();
-		        writer.println(IOUtils.toByteArray(new FileInputStream(dirPath + filename)));
+		        writer.println(new BASE64Encoder().encode(IOUtils.toByteArray(new FileInputStream(dirPath + filename))).replace("\r", "").replace("\n", ""));
 		        writer.flush();
 			}
 		}

@@ -43,7 +43,7 @@ public class GcmIntentService extends IntentService {
         		String sendername = extras.getString("sendername");
         		String filename = extras.getString("filename");
         		String type = extras.getString("type");
-                sendNotification(sendername + " sends " + filename, sendername, filename, type);
+                sendNotification(sendername + " sends " + filename.split("_", 2)[1], sendername, filename, type);
                 
                 Log.i(TAG, "Received: " + extras.toString());
             }
@@ -61,7 +61,9 @@ public class GcmIntentService extends IntentService {
         i.putExtra("filename", filename);
         i.putExtra("type", type);
         
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, i, 0);
+        Log.v(TAG, "Adding filename " + filename + " to intent");
+        
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, i, PendingIntent.FLAG_CANCEL_CURRENT);
 
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
 	        .setSmallIcon(R.drawable.ic_launcher)
@@ -71,6 +73,7 @@ public class GcmIntentService extends IntentService {
 	        .setContentText(msg);
 
         mBuilder.setContentIntent(contentIntent);
+        mBuilder.setAutoCancel(true);
         mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
     }
 }

@@ -56,6 +56,9 @@ public class DownloadActivity extends Activity implements ConnectionCallbacks, O
 		
         context = getApplicationContext();
     	uuid = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getDeviceId();
+    	
+    	AsyncLoader myLoader = new AsyncLoader();
+		myLoader.execute();
 	}
 
 	@Override
@@ -138,7 +141,7 @@ public class DownloadActivity extends Activity implements ConnectionCallbacks, O
                     .addOnConnectionFailedListener(this)
                     .build();
     	}
-        // Connect the client. Once connected, the camera is launched.
+        // Connect the client.
         mGoogleApiClient.connect();
     }
 
@@ -157,6 +160,8 @@ public class DownloadActivity extends Activity implements ConnectionCallbacks, O
                 // Called after a file is saved to Drive.
                 if (resultCode == RESULT_OK) {
                     Log.i(TAG, "File successfully saved.");
+                    finish();
+                    //*********
                 }
                 break;
         }
@@ -185,8 +190,6 @@ public class DownloadActivity extends Activity implements ConnectionCallbacks, O
     @Override
     public void onConnected(Bundle connectionHint) {
         Log.i(TAG, "API client connected.");
-    	AsyncLoader myLoader = new AsyncLoader();
-		myLoader.execute();
     }
 
     @Override
@@ -228,6 +231,8 @@ public class DownloadActivity extends Activity implements ConnectionCallbacks, O
 	        	sendername = extras.getString("sendername");
 	        	filename = extras.getString("filename");
 	            type = extras.getString("type");
+
+	            Log.v(TAG, "Got filename " + filename + " from intent");
 	            
 	            //**************** validate whether they actually want to download or not
 	            
@@ -261,14 +266,15 @@ public class DownloadActivity extends Activity implements ConnectionCallbacks, O
     	        post.setEntity(entity);
     	        HttpResponse response = client.execute(post);
     	        HttpEntity httpEntity = response.getEntity();
+    	        
     	        result = EntityUtils.toString(httpEntity);
+                saveFileToDrive(Base64.decode(result), filename.split("_", 2)[1], type);
     	            	        
     		} catch (Exception ex) {
     			ex.printStackTrace();
     		}
             
             Log.v("result", result);
-            saveFileToDrive(result.getBytes(), filename, type);
     	}
     } 
 }
