@@ -73,7 +73,7 @@ public class MainActivity extends Activity {
 		
         context = getApplicationContext();
         
-        startService(new Intent(MainActivity.this, AndroidLocationService.class));
+        startService(new Intent(MainActivity.this, LocationService.class));
         
     	uuid = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getDeviceId();
     	
@@ -358,20 +358,24 @@ public class MainActivity extends Activity {
 	public void chooseRecipients() {
 		//************ fetch from server
     	ArrayList<String> uuids = new ArrayList<String>();
+    	ArrayList<String> names = new ArrayList<String>();
     	uuids.add("353918058381696");
     	uuids.add("99000114946589");
+    	names.add("Cameron Beyer");
+    	names.add("Adam Drotar");
     	
-    	final CharSequence[] items = uuids.toArray(new CharSequence[uuids.size()]);
-    	itemsChecked = new boolean[items.length];
+    	final CharSequence[] namelist = names.toArray(new CharSequence[names.size()]);
+    	final CharSequence[] uuidlist = uuids.toArray(new CharSequence[uuids.size()]);
+    	itemsChecked = new boolean[namelist.length];
     	
     	AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
     	builder.setTitle("Choose Recipients");
     	
     	builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
-                for (int i = 0; i < items.length; i++) {
+                for (int i = 0; i < namelist.length; i++) {
 	                if (itemsChecked[i]) {
-	                	recipients = recipients + items[i] + ",";
+	                	recipients = recipients + uuidlist[i] + ",";
 	                    itemsChecked[i] = false;
 	                }
                 }
@@ -386,7 +390,7 @@ public class MainActivity extends Activity {
             }
         });
     	
-    	builder.setMultiChoiceItems(items, itemsChecked, new DialogInterface.OnMultiChoiceClickListener() {
+    	builder.setMultiChoiceItems(namelist, itemsChecked, new DialogInterface.OnMultiChoiceClickListener() {
 			@Override
 			public void onClick(DialogInterface dialog, int which, boolean isChecked) {
 					itemsChecked[which] = isChecked;	

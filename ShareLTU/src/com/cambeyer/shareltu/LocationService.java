@@ -32,7 +32,7 @@ import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.util.Log;
 
-public class AndroidLocationService extends Service {
+public class LocationService extends Service {
 
 	WakeLock wakeLock;
 	
@@ -64,7 +64,7 @@ public class AndroidLocationService extends Service {
 	    Log.v(TAG, "Service Started");
 	
 	    locationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
-	    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1 * 60 * 1000, 10, listener);
+	    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1 * 60 * 1000, 500, listener);
 	    
 	    return START_STICKY;
 	}

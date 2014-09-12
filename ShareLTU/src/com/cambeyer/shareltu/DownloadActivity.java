@@ -1,8 +1,8 @@
 package com.cambeyer.shareltu;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.File;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -13,37 +13,25 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 
 import com.cambeyer.shareltu.R;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
-import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.drive.Drive;
-import com.google.android.gms.drive.DriveApi.ContentsResult;
-import com.google.android.gms.drive.MetadataChangeSet;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentSender;
-import android.content.IntentSender.SendIntentException;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
-public class DownloadActivity extends Activity implements ConnectionCallbacks, OnConnectionFailedListener {
+public class DownloadActivity extends Activity {
 	
 	public static final String SERVER_URL = "http://betterdriving.riis.com:8080/ShareLTU/download";
-	
-    private static final int REQUEST_CODE_CREATOR = 2;
-    private static final int REQUEST_CODE_RESOLUTION = 3;
-
-    private GoogleApiClient mGoogleApiClient;
 
     static final String TAG = "Download";
     Context context;
@@ -80,122 +68,6 @@ public class DownloadActivity extends Activity implements ConnectionCallbacks, O
 		return super.onOptionsItemSelected(item);
 	}
 
-    /**
-     * Create a new file and save it to Drive.
-     */
-    private void saveFileToDrive(final byte[] bytesToSave, final String filename, final String type) {
-        // Start by creating a new contents, and setting a callback.
-        Log.i(TAG, "Creating new contents.");
-        Drive.DriveApi.newContents(mGoogleApiClient).setResultCallback(new ResultCallback<ContentsResult>() {
-
-            @Override
-            public void onResult(ContentsResult result) {
-                // If the operation was not successful, we cannot do anything
-                // and must
-                // fail.
-                if (!result.getStatus().isSuccess()) {
-                    Log.i(TAG, "Failed to create new contents.");
-                    return;
-                }
-                // Otherwise, we can write our data to the new contents.
-                Log.i(TAG, "New contents created.");
-                // Get an output stream for the contents.
-                OutputStream outputStream = result.getContents().getOutputStream();
-                try {
-                    outputStream.write(bytesToSave);
-                } catch (IOException e1) {
-                    Log.i(TAG, "Unable to write file contents.");
-                }
-                // Create the initial metadata - MIME type and title.
-                // Note that the user will be able to change the title later.
-                MetadataChangeSet metadataChangeSet = new MetadataChangeSet.Builder().setMimeType(type).setTitle(filename).build();
-                // Create an intent for the file chooser, and start it.
-                IntentSender intentSender = Drive.DriveApi
-                        .newCreateFileActivityBuilder()
-                        .setInitialMetadata(metadataChangeSet)
-                        .setInitialContents(result.getContents())
-                        .build(mGoogleApiClient);
-                try {
-                    startIntentSenderForResult(intentSender, REQUEST_CODE_CREATOR, null, 0, 0, 0);
-                } catch (SendIntentException e) {
-                    Log.i(TAG, "Failed to launch file chooser.");
-                }
-                finish();
-            }
-        });
-    }
-
-    @Override
-    protected void onResume() {
-    	super.onResume();
-    	if (mGoogleApiClient == null) {
-    		// Create the API client and bind it to an instance variable.
-            // We use this instance as the callback for connection and connection
-            // failures.
-            // Since no account name is passed, the user is prompted to choose.
-            mGoogleApiClient = new GoogleApiClient.Builder(this)
-                    .addApi(Drive.API)
-                    .addScope(Drive.SCOPE_FILE)
-                    .addConnectionCallbacks(this)
-                    .addOnConnectionFailedListener(this)
-                    .build();
-    	}
-        // Connect the client.
-        mGoogleApiClient.connect();
-    }
-
-    @Override
-    protected void onPause() {
-        if (mGoogleApiClient != null) {
-            mGoogleApiClient.disconnect();
-        }
-        super.onPause();
-    }
-
-    @Override
-    protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
-        switch (requestCode) {
-            case REQUEST_CODE_CREATOR:
-                // Called after a file is saved to Drive.
-                if (resultCode == RESULT_OK) {
-                    Log.i(TAG, "File successfully saved.");
-                    finish();
-                    //*********
-                }
-                break;
-        }
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult result) {
-        // Called whenever the API client fails to connect.
-        Log.i(TAG, "GoogleApiClient connection failed: " + result.toString());
-        if (!result.hasResolution()) {
-            // show the localized error dialog.
-            GooglePlayServicesUtil.getErrorDialog(result.getErrorCode(), this, 0).show();
-            return;
-        }
-        // The failure has a resolution. Resolve it.
-        // Called typically when the app is not yet authorized, and an
-        // authorization
-        // dialog is displayed to the user.
-        try {
-            result.startResolutionForResult(this, REQUEST_CODE_RESOLUTION);
-        } catch (SendIntentException e) {
-            Log.e(TAG, "Exception while starting resolution activity", e);
-        }
-    }
-
-    @Override
-    public void onConnected(Bundle connectionHint) {
-        Log.i(TAG, "API client connected.");
-    }
-
-    @Override
-    public void onConnectionSuspended(int cause) {
-        Log.i(TAG, "GoogleApiClient connection suspended");
-    }
-	
 	public class AsyncLoader extends AsyncTask<Void, Void, Void>
     {        
         public boolean hideLoadingScreen;
@@ -266,8 +138,45 @@ public class DownloadActivity extends Activity implements ConnectionCallbacks, O
     	        HttpResponse response = client.execute(post);
     	        HttpEntity httpEntity = response.getEntity();
     	        
-                saveFileToDrive(EntityUtils.toByteArray(httpEntity), filename.split("_", 2)[1], type);
+    	        final File output = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) + File.separator + "ShareLTU", filename.split("_", 2)[1]);
+    	        
+    	        FileUtils.writeByteArrayToFile(output, EntityUtils.toByteArray(httpEntity));
     	            	        
+    	        Log.v(TAG, "Saving temp file at " + output.length() + " " + Uri.fromFile(output).toString());   
+    	        
+    	        Intent media = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+    	        media.setData(Uri.fromFile(output));
+    	        sendBroadcast(media);
+    	        
+    	        final AlertDialog.Builder builder = new AlertDialog.Builder(DownloadActivity.this);
+    	        final Intent intent = new Intent().setDataAndType(Uri.fromFile(output), type);
+    	        final DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+    	            @Override
+    	            public void onClick(DialogInterface dialog, int which) {
+    	                switch (which){
+    	                case DialogInterface.BUTTON_POSITIVE:
+    	                    intent.setAction(Intent.ACTION_VIEW);
+    	        	        startActivity(Intent.createChooser(intent, "View your file"));
+    	        	        break;
+
+    	                case DialogInterface.BUTTON_NEGATIVE:
+    	                    intent.setAction(Intent.ACTION_SEND);
+    	        	        startActivity(Intent.createChooser(intent, "Save your file"));
+    	                    break;
+    	                }
+    	                finish();
+    	            }
+    	        };
+    	        
+    	        runOnUiThread(new Runnable() 
+    	        {
+    	            public void run() 
+    	            {
+    	    	        builder.setTitle("Save or View?").setMessage("You will be presented with options for which application you would like to use in either case.").setPositiveButton("View", dialogClickListener).setNegativeButton("Save", dialogClickListener).show();
+    	            }
+    	        });    
+
+    	            	            	        
     		} catch (Exception ex) {
     			ex.printStackTrace();
     		}
