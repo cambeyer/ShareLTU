@@ -149,17 +149,21 @@ public class DownloadActivity extends Activity {
     	        sendBroadcast(media);
     	        
     	        final AlertDialog.Builder builder = new AlertDialog.Builder(DownloadActivity.this);
-    	        final Intent intent = new Intent().setDataAndType(Uri.fromFile(output), type);
+    	        final Intent intent = new Intent();
+    	        
     	        final DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
     	            @Override
     	            public void onClick(DialogInterface dialog, int which) {
     	                switch (which){
     	                case DialogInterface.BUTTON_POSITIVE:
+    	                	intent.setDataAndType(Uri.fromFile(output), type);
     	                    intent.setAction(Intent.ACTION_VIEW);
     	        	        startActivity(Intent.createChooser(intent, "View your file"));
     	        	        break;
 
     	                case DialogInterface.BUTTON_NEGATIVE:
+    	                	intent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(output));
+    	                	intent.setType(type);
     	                    intent.setAction(Intent.ACTION_SEND);
     	        	        startActivity(Intent.createChooser(intent, "Save your file"));
     	                    break;
