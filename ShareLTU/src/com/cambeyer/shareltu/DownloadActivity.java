@@ -164,7 +164,7 @@ public class DownloadActivity extends Activity {
     	        	        startActivity(Intent.createChooser(intent, "Save your file"));
     	                    break;
     	                }
-    	                finish();
+    	    	        finish();
     	            }
     	        };
     	        
@@ -174,8 +174,7 @@ public class DownloadActivity extends Activity {
     	            {
     	    	        builder.setTitle("Save or View?").setMessage("You will be presented with options for which application you would like to use in either case.").setPositiveButton("View", dialogClickListener).setNegativeButton("Save", dialogClickListener).show();
     	            }
-    	        });    
-
+    	        });
     	            	            	        
     		} catch (Exception ex) {
     			ex.printStackTrace();
