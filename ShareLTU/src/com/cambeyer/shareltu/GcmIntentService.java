@@ -3,6 +3,7 @@ package com.cambeyer.shareltu;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 import android.app.IntentService;
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -65,15 +66,18 @@ public class GcmIntentService extends IntentService {
         
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
+        Notification notification = new NotificationCompat.Builder(this)
 	        .setSmallIcon(R.drawable.ic_launcher)
 	        .setContentTitle("Incoming file transfer")
 	        .setStyle(new NotificationCompat.BigTextStyle()
 	        .bigText(msg))
-	        .setContentText(msg);
+	        .setContentText(msg)
+	        .setContentIntent(contentIntent)
+	        .setAutoCancel(true)
+	        .build();
+        
+        notification.defaults |= Notification.DEFAULT_ALL;
 
-        mBuilder.setContentIntent(contentIntent);
-        mBuilder.setAutoCancel(true);
-        mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
+        mNotificationManager.notify(NOTIFICATION_ID, notification);
     }
 }
