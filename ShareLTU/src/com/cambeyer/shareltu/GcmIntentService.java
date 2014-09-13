@@ -16,7 +16,7 @@ public class GcmIntentService extends IntentService {
 	
     static final String TAG = "IntentService";
 
-    public static final int NOTIFICATION_ID = 1;
+    public static int NOTIFICATION_ID = 1;
     private NotificationManager mNotificationManager;
     NotificationCompat.Builder builder;
 
@@ -78,6 +78,6 @@ public class GcmIntentService extends IntentService {
         
         notification.defaults |= Notification.DEFAULT_ALL;
 
-        mNotificationManager.notify(NOTIFICATION_ID, notification);
+        mNotificationManager.notify(++NOTIFICATION_ID, notification);
     }
 }
