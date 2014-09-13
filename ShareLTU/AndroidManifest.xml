@@ -48,6 +48,7 @@
         
         <activity
             android:name="com.cambeyer.shareltu.MainActivity"
+            android:screenOrientation="portrait"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -66,6 +67,7 @@
         <activity
 			android:name="com.cambeyer.shareltu.DownloadActivity"
 			android:launchMode="singleTask"
+			android:screenOrientation="portrait"
 			android:taskAffinity=""
 			android:excludeFromRecents="true">
 		</activity>

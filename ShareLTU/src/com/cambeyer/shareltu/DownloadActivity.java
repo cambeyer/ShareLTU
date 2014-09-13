@@ -2,6 +2,7 @@ package com.cambeyer.shareltu;
 
 import java.io.File;
 import java.util.ArrayList;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -11,7 +12,9 @@ import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
+
 import com.cambeyer.shareltu.R;
+
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.ListActivity;
@@ -74,6 +77,8 @@ public class DownloadActivity extends ListActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_download);	
 		
+		getActionBar().setTitle("Previous Downloads");  
+		
 		adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, listItems);
 	    setListAdapter(adapter);
 	    buildFileList();
@@ -104,8 +109,6 @@ public class DownloadActivity extends ListActivity {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
 

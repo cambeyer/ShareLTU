@@ -2,8 +2,10 @@
 <resources>
 
     <string name="app_name">ShareLTU</string>
-    <string name="view_downloads">View Downloads</string>
+    <string name="view_downloads">View Previous Downloads</string>
     <string name="action_settings">Settings</string>
-    <string name="empty_list">No previous downloads to display</string>
+    <string name="empty_list">No Previous Downloads to Display</string>
+    <string name="welcome_title">Welcome to ShareLTU</string>
+    <string name="welcome_text">To get started, select the "Share" option from any of your favorite apps like Google Drive or Photo Gallery.</string>
 
 </resources>

@@ -90,7 +90,7 @@ int drawable ic_plusone_standard_off_client 0x7f02001b
 int drawable ic_plusone_tall_off_client 0x7f02001c
 int drawable powered_by_google_dark 0x7f02001d
 int drawable powered_by_google_light 0x7f02001e
-int id action_settings 0x7f070015
+int id action_settings 0x7f070018
 int id book_now 0x7f070010
 int id buyButton 0x7f07000a
 int id buy_now 0x7f07000f
@@ -101,6 +101,7 @@ int id grayscale 0x7f070012
 int id holo_dark 0x7f070005
 int id holo_light 0x7f070006
 int id hybrid 0x7f070004
+int id imageView1 0x7f070017
 int id match_parent 0x7f07000c
 int id monochrome 0x7f070013
 int id none 0x7f070000
@@ -111,6 +112,8 @@ int id satellite 0x7f070002
 int id selectionDetails 0x7f07000b
 int id strict_sandbox 0x7f070009
 int id terrain 0x7f070003
+int id textView1 0x7f070015
+int id textView2 0x7f070016
 int id wrap_content 0x7f07000d
 int integer google_play_services_version 0x7f080000
 int layout activity_download 0x7f030000
@@ -152,6 +155,8 @@ int string common_signin_button_text_long 0x7f05001e
 int string empty_list 0x7f050023
 int string view_downloads 0x7f050021
 int string wallet_buy_button_place_holder 0x7f05001f
+int string welcome_text 0x7f050025
+int string welcome_title 0x7f050024
 int style AppBaseTheme 0x7f040005
 int style AppTheme 0x7f040006
 int style Theme_IAPTheme 0x7f040000
