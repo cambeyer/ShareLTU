@@ -41,6 +41,7 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 public class MainActivity extends Activity {
 	
@@ -121,6 +122,10 @@ public class MainActivity extends Activity {
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
+	}
+	
+	public void downloadPage(View view) {
+	    startActivity(new Intent(this, DownloadActivity.class));
 	}
 	
 	/**

@@ -63,7 +63,7 @@ public class GcmIntentService extends IntentService {
         
         Log.v(TAG, "Adding filename " + filename + " to intent");
         
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, i, PendingIntent.FLAG_CANCEL_CURRENT);
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, i, PendingIntent.FLAG_UPDATE_CURRENT);
 
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
 	        .setSmallIcon(R.drawable.ic_launcher)

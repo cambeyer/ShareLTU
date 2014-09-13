@@ -407,12 +407,13 @@ containing a value of this type.
         public static final int powered_by_google_light=0x7f02001e;
     }
     public static final class id {
-        public static final int action_settings=0x7f070014;
+        public static final int action_settings=0x7f070015;
         public static final int book_now=0x7f070010;
         public static final int buyButton=0x7f07000a;
         public static final int buy_now=0x7f07000f;
         public static final int buy_with_google=0x7f07000e;
         public static final int classic=0x7f070011;
+        public static final int downloadButton=0x7f070014;
         public static final int grayscale=0x7f070012;
         public static final int holo_dark=0x7f070005;
         public static final int holo_light=0x7f070006;
@@ -537,7 +538,8 @@ containing a value of this type.
         /**  Long form sign-in button text [CHAR LIMIT=30] 
          */
         public static final int common_signin_button_text_long=0x7f05001e;
-        public static final int hello_world=0x7f050021;
+        public static final int empty_list=0x7f050023;
+        public static final int view_downloads=0x7f050021;
         /**  Text on a placeholder buy button when Google Play services is not
          available or up-to-date 
          */

@@ -90,12 +90,13 @@ int drawable ic_plusone_standard_off_client 0x7f02001b
 int drawable ic_plusone_tall_off_client 0x7f02001c
 int drawable powered_by_google_dark 0x7f02001d
 int drawable powered_by_google_light 0x7f02001e
-int id action_settings 0x7f070014
+int id action_settings 0x7f070015
 int id book_now 0x7f070010
 int id buyButton 0x7f07000a
 int id buy_now 0x7f07000f
 int id buy_with_google 0x7f07000e
 int id classic 0x7f070011
+int id downloadButton 0x7f070014
 int id grayscale 0x7f070012
 int id holo_dark 0x7f070005
 int id holo_light 0x7f070006
@@ -148,7 +149,8 @@ int string common_google_play_services_update_text 0x7f050013
 int string common_google_play_services_update_title 0x7f050012
 int string common_signin_button_text 0x7f05001d
 int string common_signin_button_text_long 0x7f05001e
-int string hello_world 0x7f050021
+int string empty_list 0x7f050023
+int string view_downloads 0x7f050021
 int string wallet_buy_button_place_holder 0x7f05001f
 int style AppBaseTheme 0x7f040005
 int style AppTheme 0x7f040006

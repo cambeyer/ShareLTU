@@ -2,7 +2,8 @@
 <resources>
 
     <string name="app_name">ShareLTU</string>
-    <string name="hello_world">Hello world!</string>
+    <string name="view_downloads">View Downloads</string>
     <string name="action_settings">Settings</string>
+    <string name="empty_list">No previous downloads to display</string>
 
 </resources>
