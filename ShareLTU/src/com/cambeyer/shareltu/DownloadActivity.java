@@ -52,6 +52,8 @@ public class DownloadActivity extends ListActivity {
     ArrayList<String> listItems = new ArrayList<String>();
     ArrayAdapter<String> adapter;
     
+    ArrayList<AlertDialog> dialogs = new ArrayList<AlertDialog>();
+    
 	DialogInterface.OnClickListener acceptDownloadClickListener = new DialogInterface.OnClickListener() {
         @Override
         public void onClick(DialogInterface dialog, int which) {
@@ -69,7 +71,9 @@ public class DownloadActivity extends ListActivity {
 	
 	@Override
 	protected void onNewIntent(Intent newintent) {
-		kickoff(newintent);
+		Log.v(TAG, "New Intent to download");
+		setIntent(newintent);
+		kickoff();
 	}
 
 	@Override
@@ -86,10 +90,11 @@ public class DownloadActivity extends ListActivity {
         context = getApplicationContext();
     	uuid = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getDeviceId();
     	
-    	kickoff(getIntent());
+    	kickoff();
 	}
 	
-	public void kickoff(Intent intent) {
+	public void kickoff() {
+		Intent intent = getIntent();
         Bundle extras = intent.getExtras();
         
         if (extras != null) {
@@ -97,14 +102,23 @@ public class DownloadActivity extends ListActivity {
         	sendername = extras.getString("sendername");
         	filename = extras.getString("filename");
             type = extras.getString("type");
+            
+            clearDialogs();
 
-            new AlertDialog.Builder(DownloadActivity.this)
+            dialogs.add(new AlertDialog.Builder(DownloadActivity.this)
 	        .setTitle("Accept Download?")
 	        .setMessage("Would you like to download the file \"" + filename.split("_", 2)[1] + "\" from " + sendername + "?")
 	        .setPositiveButton("Accept", acceptDownloadClickListener)
 	        .setNegativeButton("Decline", acceptDownloadClickListener)
-	        .show();
+	        .show());
         }
+	}
+	
+	public void clearDialogs() {
+		for (int i = 0; i < dialogs.size(); i++) {
+			dialogs.get(i).dismiss();
+		}
+		dialogs.clear();
 	}
 
 	@Override
@@ -152,14 +166,16 @@ public class DownloadActivity extends ListActivity {
             public void run() 
             {
             	refreshList();
+            	
+            	clearDialogs();
     	        
-            	new AlertDialog.Builder(DownloadActivity.this)
+            	dialogs.add(new AlertDialog.Builder(DownloadActivity.this)
     	        .setTitle("Send, Delete, or View?")
     	        .setMessage("Which action would you like to perform on this file?")
     	        .setPositiveButton("View", dialogClickListener)
     	        .setNeutralButton("Delete", dialogClickListener)
     	        .setNegativeButton("Send", dialogClickListener)
-    	        .show();
+    	        .show());
             }
             
             DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
