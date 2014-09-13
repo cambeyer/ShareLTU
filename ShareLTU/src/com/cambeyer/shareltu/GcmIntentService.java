@@ -64,7 +64,7 @@ public class GcmIntentService extends IntentService {
         
         Log.v(TAG, "Adding filename " + filename + " to intent");
         
-        PendingIntent contentIntent = PendingIntent.getActivity(this, NOTIFICATION_ID, i, 0);
+        PendingIntent contentIntent = PendingIntent.getActivity(this, NOTIFICATION_ID, i, PendingIntent.FLAG_CANCEL_CURRENT);
 
         Notification notification = new NotificationCompat.Builder(this)
 	        .setSmallIcon(R.drawable.ic_launcher)
@@ -78,6 +78,6 @@ public class GcmIntentService extends IntentService {
         
         notification.defaults |= Notification.DEFAULT_ALL;
 
-        mNotificationManager.notify(++NOTIFICATION_ID, notification);
+        mNotificationManager.notify(NOTIFICATION_ID++, notification);
     }
 }
