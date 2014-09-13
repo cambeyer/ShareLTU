@@ -140,18 +140,22 @@ public class DownloadActivity extends ListActivity {
 		}
 	}
 	
+	public void refreshList() {
+        adapter.clear();
+        buildFileList();
+	}
+	
 	public void presentOptions(final File output, final String type) {
 		
         runOnUiThread(new Runnable() 
         {
             public void run() 
             {
-    	        adapter.clear();
-    	        buildFileList();
+            	refreshList();
     	        
             	new AlertDialog.Builder(DownloadActivity.this)
     	        .setTitle("Send, Delete, or View?")
-    	        .setMessage("Your file has been saved.  What's next?")
+    	        .setMessage("Which action would you like to perform on this file?")
     	        .setPositiveButton("View", dialogClickListener)
     	        .setNeutralButton("Delete", dialogClickListener)
     	        .setNegativeButton("Send", dialogClickListener)
@@ -170,6 +174,7 @@ public class DownloadActivity extends ListActivity {
             	        break;
                     case DialogInterface.BUTTON_NEUTRAL:
                     	output.delete();
+                    	refreshList();
                     	break;
                     case DialogInterface.BUTTON_NEGATIVE:
                     	intent.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(output));
