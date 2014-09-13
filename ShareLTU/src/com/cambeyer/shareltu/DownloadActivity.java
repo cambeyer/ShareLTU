@@ -146,6 +146,9 @@ public class DownloadActivity extends ListActivity {
         {
             public void run() 
             {
+    	        adapter.clear();
+    	        buildFileList();
+    	        
             	new AlertDialog.Builder(DownloadActivity.this)
     	        .setTitle("Send, Delete, or View?")
     	        .setMessage("Your file has been saved.  What's next?")
@@ -175,7 +178,6 @@ public class DownloadActivity extends ListActivity {
             	        startActivity(Intent.createChooser(intent, "Send your file"));
                         break;
                     }
-        	        finish();
                 }
             };
         });
@@ -190,6 +192,8 @@ public class DownloadActivity extends ListActivity {
         protected void onPreExecute() {
             pdLoading = new ProgressDialog(DownloadActivity.this);
             pdLoading.setMessage("\tDownloading...");
+            pdLoading.setCancelable(false);
+            pdLoading.setCanceledOnTouchOutside(false);
             
 	  	    try {
 	            pdLoading.show();

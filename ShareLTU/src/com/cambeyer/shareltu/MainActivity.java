@@ -254,6 +254,8 @@ public class MainActivity extends Activity {
         protected void onPreExecute() {
             pdLoading = new ProgressDialog(MainActivity.this);
             pdLoading.setMessage("\tUploading...");
+            pdLoading.setCancelable(false);
+            pdLoading.setCanceledOnTouchOutside(false);
             
 	  	    try {
 	            pdLoading.show();
