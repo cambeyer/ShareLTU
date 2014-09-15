@@ -1,6 +1,5 @@
 package com.cambeyer.shareltu;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 import org.apache.http.HttpEntity;
@@ -44,8 +43,8 @@ public class LocationService extends Service {
 	
     static final String TAG = "LocationService";
     
-    public static String recentLat = "";
-    public static String recentLon = "";
+    public String recentLat = "";
+    public String recentLon = "";
     
     public static ArrayList<String> uuids = new ArrayList<String>();
     public static ArrayList<String> names = new ArrayList<String>();
@@ -55,9 +54,8 @@ public class LocationService extends Service {
     public static final String PROPERTY_REG_ID = "registration_id";		//used for storing shared prefs
     private static final String PROPERTY_APP_VERSION = "appVersion";	//used for storing shared prefs
     
-    GoogleCloudMessaging gcm;
-    SharedPreferences prefs;
-    Context context;
+    private GoogleCloudMessaging gcm;
+    private Context context;
     
     public static String regid;
     public static String uuid;
@@ -120,6 +118,8 @@ public class LocationService extends Service {
 	        
 	        recentLat = location.getLatitude() + "";
 	        recentLon = location.getLongitude() + "";
+	        
+	        Log.v(TAG, "lat: " + recentLat + ", lon: " + recentLon);
 	
 	        if (isConnectedToInternet(getApplicationContext())) {
 	            try {
