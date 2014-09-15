@@ -84,14 +84,7 @@ public class MainActivity extends Activity {
 	
 	public void chooseRecipients()
 	{
-		//************ fetch from server
-//    	ArrayList<String> uuids = new ArrayList<String>();
-//    	ArrayList<String> names = new ArrayList<String>();
-//    	uuids.add("353918058381696");
-//    	uuids.add("99000114946589");
-//    	names.add("Cameron Beyer");
-//    	names.add("Adam Drotar");
-    	
+		//************** we're relying on the fact that the locationservice has gotten a location, posted it, and got a response of nearby candidates
     	final CharSequence[] namelist = LocationService.names.toArray(new CharSequence[LocationService.names.size()]);
     	final CharSequence[] uuidlist = LocationService.uuids.toArray(new CharSequence[LocationService.uuids.size()]);
     	itemsChecked = new boolean[namelist.length];
@@ -197,6 +190,7 @@ public class MainActivity extends Activity {
     	        result = EntityUtils.toString(httpEntity);
     	        
     		} catch (Exception ex) {
+    			ex.printStackTrace();
     		}
             
             Log.v("result", result);

@@ -21,6 +21,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.database.Cursor;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -31,6 +32,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
+import android.provider.ContactsContract;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
@@ -43,8 +45,8 @@ public class LocationService extends Service {
 	
     static final String TAG = "LocationService";
     
-    public String recentLat = "";
-    public String recentLon = "";
+    public static String recentLat = "";
+    public static String recentLon = "";
     
     public static ArrayList<String> uuids = new ArrayList<String>();
     public static ArrayList<String> names = new ArrayList<String>();
@@ -55,10 +57,11 @@ public class LocationService extends Service {
     private static final String PROPERTY_APP_VERSION = "appVersion";	//used for storing shared prefs
     
     private GoogleCloudMessaging gcm;
-    private Context context;
+    private static Context context;
     
     public static String regid;
     public static String uuid;
+    public static String name;
 	
 	@Override
 	public IBinder onBind(Intent arg0) {
@@ -76,6 +79,22 @@ public class LocationService extends Service {
 	public int onStartCommand(Intent intent, int flags, int startId) {
 	
 	    Log.v(TAG, "Service Started");
+	    
+	    Cursor c = getContentResolver().query(ContactsContract.Profile.CONTENT_URI, null, null, null, null);
+	    int count = c.getCount();
+	    String[] columnNames = c.getColumnNames();
+	    c.moveToFirst();
+	    int position = c.getPosition();
+	    if (count == 1 && position == 0) {
+	        for (int j = 0; j < columnNames.length; j++) {
+	            if (columnNames[j].equals("display_name"))
+	            {
+	            	name = c.getString(c.getColumnIndex(columnNames[j]));
+	            	Log.v(TAG, "Name: " + name);
+	            }
+	        }
+	    }
+	    c.close();
 	    
         context = getApplicationContext();
 	    uuid = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getDeviceId();
@@ -102,72 +121,85 @@ public class LocationService extends Service {
 	public void doCommunication()
 	{
 		Log.v(TAG, "regid: " + regid);
+		
 	    locationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
-	    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1 * 60 * 1000, 500, listener);
+	    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5 * 60 * 1000, 500, listener);
+	    
+	    locChanged(locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER));
+	}
+	
+	public static void locChanged(Location location) {
+        Log.v(TAG, "Location Changed");
+    	
+        if (location == null)
+        {
+            return;
+        }
+        
+        recentLat = location.getLatitude() + "";
+        recentLon = location.getLongitude() + "";
+        
+        Log.v(TAG, "lat: " + recentLat + ", lon: " + recentLon);
+
+        if (isConnectedToInternet(context)) {
+            try {
+        	    new AsyncTask<Void, Void, Void>() {
+        	        @Override
+        	        protected Void doInBackground(Void... params) {
+        				
+        				Log.v(TAG, "About to contact server");
+        				
+        				try {
+        			        HttpClient client = new DefaultHttpClient();          
+        			        HttpPost post = new HttpPost(SERVER_URL);
+        			        MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
+        			        entityBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+        					
+        			        entityBuilder.addTextBody("name", name);
+        			        entityBuilder.addTextBody("uuid", uuid);
+        			        entityBuilder.addTextBody("regid", regid);
+        			        entityBuilder.addTextBody("lat", recentLat);
+        			        entityBuilder.addTextBody("lon", recentLon);
+        			        
+        			        HttpEntity entity = entityBuilder.build();
+        			        post.setEntity(entity);
+        			        HttpResponse response = client.execute(post);
+        			        HttpEntity httpEntity = response.getEntity();
+        			        String result = EntityUtils.toString(httpEntity);
+        			        
+        			        Log.v(TAG, "Received: " + result);
+        			        
+        			        if (!result.isEmpty())
+        			        {
+            			        names.clear();
+            			        uuids.clear();
+        			        
+	        			        String[] chunks = result.split(",");
+	        			        for (int i = 0; i < chunks.length; i++)
+	        			        {
+	        			        	uuids.add(chunks[i].split("_", 2)[0]);
+	        			        	names.add(chunks[i].split("_", 2)[1]);
+        			        }
+        			        }
+        				}
+        				catch (Exception ex)
+        				{
+        					ex.printStackTrace();
+        				}
+        				
+        			    return null;
+        	        }
+        	    }.execute();
+            } catch (Exception e) {
+            }
+        }
 	}
 	
 	private LocationListener listener = new LocationListener() {
 	
 	    @Override
 	    public void onLocationChanged(Location location) {
-	
-	        Log.v(TAG, "Location Changed");
-	
-	        if (location == null)
-	            return;
-	        
-	        recentLat = location.getLatitude() + "";
-	        recentLon = location.getLongitude() + "";
-	        
-	        Log.v(TAG, "lat: " + recentLat + ", lon: " + recentLon);
-	
-	        if (isConnectedToInternet(getApplicationContext())) {
-	            try {
-	        	    new AsyncTask<Void, Void, Void>() {
-	        	        @Override
-	        	        protected Void doInBackground(Void... params) {
-	        				
-	        				Log.v(TAG, "About to contact server");
-	        				
-	        				try {
-	        			        HttpClient client = new DefaultHttpClient();          
-	        			        HttpPost post = new HttpPost(SERVER_URL);
-	        			        MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
-	        			        entityBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-	        					
-	        			        entityBuilder.addTextBody("uuid", uuid);
-	        			        entityBuilder.addTextBody("regid", regid);
-	        			        entityBuilder.addTextBody("lat", recentLat);
-	        			        entityBuilder.addTextBody("lon", recentLon);
-	        			        
-	        			        HttpEntity entity = entityBuilder.build();
-	        			        post.setEntity(entity);
-	        			        HttpResponse response = client.execute(post);
-	        			        HttpEntity httpEntity = response.getEntity();
-	        			        String result = EntityUtils.toString(httpEntity);
-	        			        
-	        			        Log.v(TAG, "Received: " + result);
-	        			        
-	        			        names.clear();
-	        			        uuids.clear();
-	        			        
-	        			        String[] chunks = result.split(",");
-	        			        for (int i = 0; i < chunks.length; i++)
-	        			        {
-	        			        	uuids.add(chunks[i].split("_", 2)[0]);
-	        			        	names.add(chunks[i].split("_", 2)[1]);
-	        			        }
-	        				}
-	        				catch (Exception ex)
-	        				{
-	        				}
-	        				
-	        			    return null;
-	        	        }
-	        	    }.execute();
-	            } catch (Exception e) {
-	            }
-	        }
+	    	locChanged(location);
 	    }
 	
 	    @Override

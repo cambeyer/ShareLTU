@@ -49,23 +49,6 @@ public class UploadServlet extends HttpServlet {
             uploadDir.mkdir();
         }
         
-        //***************************
-//        UserObject user = new UserObject();
-//        user.name = "Cameron Beyer";
-//        user.uuid = "353918058381696";
-//        user.regid = "APA91bFnfPedJJ3UwlLQg4zed_zxOVxxm9y6E-4OeY-QLgmRjD6H-lvbHU_ZrXlX2nlvhK4Z5rgf4sNPQG7Nkl93IHJxmYXou9xN6SK2k_HcVlax7veMYSZ039q3WNspzSKybyznoB3TqeQiKQnQ96gHDhRG2s8aew";
-//        user.lat = "42.545032";
-//        user.lon = "-83.118824";
-//        UserManager.add(user);
-        
-//        UserObject user2 = new UserObject();
-//        user2.name = "Adam Drotar";
-//        user2.uuid = "99000114946589";
-//        user2.regid = "APA91bFlQHqo4rJzYhelJj6ncl09g8j83dTVIIx7I4GZqbujv4b0szdbGfmPbXEYdsvEOkC-QyDQr0Cx3mPijHV_5nIRoP7mjr8IFCWwI2z_a8T-nZzWy5ri7SKRvuQCOHv6X7nf7zukqD7oIa_4QWKEkiEwc9Qv1Q";
-//        user2.lat = "42.545032";
-//        user2.lon = "-83.118824";
-//        UserManager.add(user2);
-        
     	String filename = "";
     	
         FileObject file = new FileObject();
@@ -175,5 +158,6 @@ public class UploadServlet extends HttpServlet {
         {
             request.setAttribute("message", "");
         }
+        getServletContext().getRequestDispatcher("/message.jsp").forward(request, response);
     }
 }
