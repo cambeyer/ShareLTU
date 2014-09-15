@@ -133,6 +133,7 @@ public class LocationService extends Service {
     	
         if (location == null)
         {
+        	Log.v(TAG, "It was NULL");
             return;
         }
         
