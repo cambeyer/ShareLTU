@@ -3,23 +3,25 @@ package com.cambeyer.shareltu;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.NameValuePair;
-import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import org.apache.http.util.EntityUtils;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -30,17 +32,35 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 
 public class LocationService extends Service {
 
 	WakeLock wakeLock;
 	
-	public static final String SERVER_URL = "http://betterdriving.riis.com:8080/ShareLTU/do";
+	public static final String SERVER_URL = "http://betterdriving.riis.com:8080/ShareLTU/upload";
+    String SENDER_ID = "894263816119";
 	
     static final String TAG = "LocationService";
+    
+    public static String recentLat = "";
+    public static String recentLon = "";
+    
+    public static ArrayList<String> uuids = new ArrayList<String>();
+    public static ArrayList<String> names = new ArrayList<String>();
 	
 	private LocationManager locationManager;
+	
+    public static final String PROPERTY_REG_ID = "registration_id";		//used for storing shared prefs
+    private static final String PROPERTY_APP_VERSION = "appVersion";	//used for storing shared prefs
+    
+    GoogleCloudMessaging gcm;
+    SharedPreferences prefs;
+    Context context;
+    
+    public static String regid;
+    public static String uuid;
 	
 	@Override
 	public IBinder onBind(Intent arg0) {
@@ -50,23 +70,42 @@ public class LocationService extends Service {
 	@Override
 	public void onCreate() {
 	    super.onCreate();
-	
-	    PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-	
-	    wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "DoNotSleep");
-	
-	    Log.v(TAG, "Service Created");
+	    
+	    Log.v(TAG, "Service Created");	    
 	}
 	
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 	
 	    Log.v(TAG, "Service Started");
-	
-	    locationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
-	    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1 * 60 * 1000, 500, listener);
+	    
+        context = getApplicationContext();
+	    uuid = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getDeviceId();
+	    PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+	    wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "DoNotSleep");
+	    
+        // Check device for Play Services APK. If check succeeds, proceed with
+        //  GCM registration.
+        if (checkPlayServices()) {
+            gcm = GoogleCloudMessaging.getInstance(this);
+            regid = getRegistrationId(context);
+
+            if (regid.isEmpty()) {
+                registerInBackground();
+            } else
+            {
+            	doCommunication();
+            }
+        }
 	    
 	    return START_STICKY;
+	}
+	
+	public void doCommunication()
+	{
+		Log.v(TAG, "regid: " + regid);
+	    locationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+	    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1 * 60 * 1000, 500, listener);
 	}
 	
 	private LocationListener listener = new LocationListener() {
@@ -78,23 +117,54 @@ public class LocationService extends Service {
 	
 	        if (location == null)
 	            return;
+	        
+	        recentLat = location.getLatitude() + "";
+	        recentLon = location.getLongitude() + "";
 	
 	        if (isConnectedToInternet(getApplicationContext())) {
-	            JSONArray jsonArray = new JSONArray();
-	            JSONObject jsonObject = new JSONObject();
-	
 	            try {
-	                Log.e("latitude", location.getLatitude() + "");
-	                Log.e("longitude", location.getLongitude() + "");
-	
-	                jsonObject.put("latitude", location.getLatitude());
-	                jsonObject.put("longitude", location.getLongitude());
-	
-	                jsonArray.put(jsonObject);
-	
-	                Log.e("request", jsonArray.toString());
-	
-	                new LocationWebService().execute(new String[] { SERVER_URL, jsonArray.toString() });
+	        	    new AsyncTask<Void, Void, Void>() {
+	        	        @Override
+	        	        protected Void doInBackground(Void... params) {
+	        				
+	        				Log.v(TAG, "About to contact server");
+	        				
+	        				try {
+	        			        HttpClient client = new DefaultHttpClient();          
+	        			        HttpPost post = new HttpPost(SERVER_URL);
+	        			        MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
+	        			        entityBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+	        					
+	        			        entityBuilder.addTextBody("uuid", uuid);
+	        			        entityBuilder.addTextBody("regid", regid);
+	        			        entityBuilder.addTextBody("lat", recentLat);
+	        			        entityBuilder.addTextBody("lon", recentLon);
+	        			        
+	        			        HttpEntity entity = entityBuilder.build();
+	        			        post.setEntity(entity);
+	        			        HttpResponse response = client.execute(post);
+	        			        HttpEntity httpEntity = response.getEntity();
+	        			        String result = EntityUtils.toString(httpEntity);
+	        			        
+	        			        Log.v(TAG, "Received: " + result);
+	        			        
+	        			        names.clear();
+	        			        uuids.clear();
+	        			        
+	        			        String[] chunks = result.split(",");
+	        			        for (int i = 0; i < chunks.length; i++)
+	        			        {
+	        			        	uuids.add(chunks[i].split("_", 2)[0]);
+	        			        	names.add(chunks[i].split("_", 2)[1]);
+	        			        }
+	        				}
+	        				catch (Exception ex)
+	        				{
+	        				}
+	        				
+	        			    return null;
+	        	        }
+	        	    }.execute();
 	            } catch (Exception e) {
 	            }
 	        }
@@ -137,45 +207,117 @@ public class LocationService extends Service {
 	    }
 	    return false;
 	}
-
-	public class LocationWebService extends AsyncTask<String, String, Boolean> {
-
-		public LocationWebService() {
-		}
-
-		@Override
-		protected Boolean doInBackground(String... args) {
-			
-			Log.v(TAG, "About to contact server");
-//
-//		    ArrayList<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
-//		    nameValuePairs.add(new BasicNameValuePair("location", args[1]));
-//
-//		    HttpClient httpclient = new DefaultHttpClient();
-//		    HttpPost httppost = new HttpPost(args[0]);
-//		    HttpParams httpParameters = new BasicHttpParams();
-//
-//		    httpclient = new DefaultHttpClient(httpParameters);
-//
-//		    try {
-//		        httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
-//
-//		        HttpResponse response;
-//		        response = httpclient.execute(httppost);
-//		        StatusLine statusLine = response.getStatusLine();
-//		        if (statusLine.getStatusCode() == HttpStatus.SC_OK) {
-//
-//		            Log.v(TAG, "Server Responded OK");
-//
-//		        } else {
-//
-//		            response.getEntity().getContent().close();
-//		            throw new IOException(statusLine.getReasonPhrase());
-//		        }
-//		    } catch (Exception e) {
-//		        e.printStackTrace();
-//		    }
-		    return null;
-		}
+	
+	/**
+	 * Gets the current registration ID for application on GCM service.
+	 * <p>
+	 * If result is empty, the app needs to register.
+	 *
+	 * @return registration ID, or empty string if there is no existing
+	 *         registration ID.
+	 */
+	private String getRegistrationId(Context context) {
+	    final SharedPreferences prefs = getGCMPreferences(context);
+	    String registrationId = prefs.getString(PROPERTY_REG_ID, "");
+	    if (registrationId.isEmpty()) {
+	        Log.i(TAG, "Registration not found.");
+	        return "";
+	    }
+	    // Check if app was updated; if so, it must clear the registration ID
+	    // since the existing regID is not guaranteed to work with the new
+	    // app version.
+	    int registeredVersion = prefs.getInt(PROPERTY_APP_VERSION, Integer.MIN_VALUE);
+	    int currentVersion = getAppVersion(context);
+	    if (registeredVersion != currentVersion) {
+	        Log.i(TAG, "App version changed.");
+	        return "";
+	    }
+	    return registrationId;
 	}
+
+	/**
+	 * @return Application's {@code SharedPreferences}.
+	 */
+	private SharedPreferences getGCMPreferences(Context context) {
+	    // This sample app persists the registration ID in shared preferences, but
+	    // how you store the regID in your app is up to you.
+	    return getSharedPreferences(MainActivity.class.getSimpleName(), Context.MODE_PRIVATE);
+	}
+	
+	/**
+	 * @return Application's version code from the {@code PackageManager}.
+	 */
+	private static int getAppVersion(Context context) {
+	    try {
+	        PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+	        return packageInfo.versionCode;
+	    } catch (NameNotFoundException e) {
+	        // should never happen
+	        throw new RuntimeException("Could not get package name: " + e);
+	    }
+	}
+	
+	/**
+	 * Registers the application with GCM servers asynchronously.
+	 * <p>
+	 * Stores the registration ID and app versionCode in the application's
+	 * shared preferences.
+	 */
+	private void registerInBackground() {
+	    new AsyncTask<Void, Void, Void>() {
+	        @Override
+	        protected Void doInBackground(Void... params) {
+	            try {
+	                if (gcm == null) {
+	                    gcm = GoogleCloudMessaging.getInstance(context);
+	                }
+	                regid = gcm.register(SENDER_ID);
+	                
+	                // Persist the regID - no need to register again.
+	                storeRegistrationId(context, regid);
+
+	            } catch (Exception ex) {
+	                // If there is an error, don't just keep trying to register.
+	                // Require the user to click a button again, or perform
+	                // exponential back-off.
+	            }
+	            return null;
+	        }
+	        @Override
+	        protected void onPostExecute(Void result) {
+	        	doCommunication();
+	        }
+	    }.execute();
+	}
+	
+	/**
+	 * Stores the registration ID and app versionCode in the application's
+	 * {@code SharedPreferences}.
+	 *
+	 * @param context application's context.
+	 * @param regId registration ID
+	 */
+	private void storeRegistrationId(Context context, String regId) {
+	    final SharedPreferences prefs = getGCMPreferences(context);
+	    int appVersion = getAppVersion(context);
+	    Log.i(TAG, "Saving regId on app version " + appVersion);
+	    SharedPreferences.Editor editor = prefs.edit();
+	    editor.putString(PROPERTY_REG_ID, regId);
+	    editor.putInt(PROPERTY_APP_VERSION, appVersion);
+	    editor.commit();
+	}
+	
+	/**
+	 * Check the device to make sure it has the Google Play Services APK. If
+	 * it doesn't, display a dialog that allows users to download the APK from
+	 * the Google Play Store or enable it in the device's system settings.
+	 */
+	private boolean checkPlayServices() {
+	    int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+	    if (resultCode != ConnectionResult.SUCCESS) {
+	        return false;
+	    }
+	    return true;
+	}
+
 }

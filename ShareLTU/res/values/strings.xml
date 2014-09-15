@@ -7,5 +7,6 @@
     <string name="empty_list">No Previous Downloads to Display</string>
     <string name="welcome_title">Welcome to ShareLTU</string>
     <string name="welcome_text">To get started, select the "Share" option from any of your favorite apps like Google Drive or Photo Gallery.</string>
+    <string name="logo_description">Logo</string>
 
 </resources>

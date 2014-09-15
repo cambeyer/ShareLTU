@@ -542,6 +542,7 @@ containing a value of this type.
          */
         public static final int common_signin_button_text_long=0x7f05001e;
         public static final int empty_list=0x7f050023;
+        public static final int logo_description=0x7f050026;
         public static final int view_downloads=0x7f050021;
         /**  Text on a placeholder buy button when Google Play services is not
          available or up-to-date 

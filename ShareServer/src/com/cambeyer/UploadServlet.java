@@ -2,7 +2,6 @@ package com.cambeyer;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -30,15 +29,7 @@ public class UploadServlet extends HttpServlet {
     
     @SuppressWarnings("rawtypes")
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
-    {
-        if (!ServletFileUpload.isMultipartContent(request))
-        {
-            PrintWriter writer = response.getWriter();
-            writer.println("Request does not contain upload data");
-            writer.flush();
-            return;
-        }
-         
+    {        
         // configures upload settings
         DiskFileItemFactory factory = new DiskFileItemFactory();
         factory.setSizeThreshold(THRESHOLD_SIZE);
@@ -59,26 +50,26 @@ public class UploadServlet extends HttpServlet {
         }
         
         //***************************
-        UserObject user = new UserObject();
-        user.name = "Cameron Beyer";
-        user.uuid = "353918058381696";
-        user.regid = "APA91bFnfPedJJ3UwlLQg4zed_zxOVxxm9y6E-4OeY-QLgmRjD6H-lvbHU_ZrXlX2nlvhK4Z5rgf4sNPQG7Nkl93IHJxmYXou9xN6SK2k_HcVlax7veMYSZ039q3WNspzSKybyznoB3TqeQiKQnQ96gHDhRG2s8aew";
-        user.lat = "42.545032";
-        user.lon = "-83.118824";
-        UserManager.add(user);
+//        UserObject user = new UserObject();
+//        user.name = "Cameron Beyer";
+//        user.uuid = "353918058381696";
+//        user.regid = "APA91bFnfPedJJ3UwlLQg4zed_zxOVxxm9y6E-4OeY-QLgmRjD6H-lvbHU_ZrXlX2nlvhK4Z5rgf4sNPQG7Nkl93IHJxmYXou9xN6SK2k_HcVlax7veMYSZ039q3WNspzSKybyznoB3TqeQiKQnQ96gHDhRG2s8aew";
+//        user.lat = "42.545032";
+//        user.lon = "-83.118824";
+//        UserManager.add(user);
         
-        UserObject user2 = new UserObject();
-        user2.name = "Adam Drotar";
-        user2.uuid = "99000114946589";
-        user2.regid = "APA91bFlQHqo4rJzYhelJj6ncl09g8j83dTVIIx7I4GZqbujv4b0szdbGfmPbXEYdsvEOkC-QyDQr0Cx3mPijHV_5nIRoP7mjr8IFCWwI2z_a8T-nZzWy5ri7SKRvuQCOHv6X7nf7zukqD7oIa_4QWKEkiEwc9Qv1Q";
-        user2.lat = "42.545032";
-        user2.lon = "-83.118824";
-        UserManager.add(user2);
+//        UserObject user2 = new UserObject();
+//        user2.name = "Adam Drotar";
+//        user2.uuid = "99000114946589";
+//        user2.regid = "APA91bFlQHqo4rJzYhelJj6ncl09g8j83dTVIIx7I4GZqbujv4b0szdbGfmPbXEYdsvEOkC-QyDQr0Cx3mPijHV_5nIRoP7mjr8IFCWwI2z_a8T-nZzWy5ri7SKRvuQCOHv6X7nf7zukqD7oIa_4QWKEkiEwc9Qv1Q";
+//        user2.lat = "42.545032";
+//        user2.lon = "-83.118824";
+//        UserManager.add(user2);
         
     	String filename = "";
-    	String fromuuid = "";
-    	String touuid = "";
-    	String type = "";
+    	
+        FileObject file = new FileObject();
+    	UserObject user = new UserObject();
          
         try
         {
@@ -95,6 +86,7 @@ public class UploadServlet extends HttpServlet {
                 {
                     filename = new File(item.getName()).getName();
                     String filePath = uploadPath + File.separator + filename;
+                    file.filename = filename;
                     File storeFile = new File(filePath);
                      
                     // saves the file on disk
@@ -104,48 +96,84 @@ public class UploadServlet extends HttpServlet {
                 {
                 	if (item.getFieldName().equals("fromuuid"))
                 	{
-                		fromuuid = item.getString();
+                		file.fromuuid = item.getString();
+                		user.uuid = item.getString();
                 	}
                 	else if (item.getFieldName().equals("touuid"))
                 	{
-                		touuid = item.getString();
+                		file.touuid = item.getString();
                 	}
                 	else if (item.getFieldName().equals("type"))
                 	{
-                		type = item.getString();
+                		file.type = item.getString();
+                	}
+                	
+                	
+                	if (item.getFieldName().equals("regid"))
+                	{
+                		user.regid = item.getString();
+                	}
+                	else if (item.getFieldName().equals("uuid"))
+                	{
+                		user.uuid = item.getString();
+                	}
+                	else if (item.getFieldName().equals("name"))
+                	{
+                		user.name = item.getString();
+                	}
+                	else if (item.getFieldName().equals("lat"))
+                	{
+                		if (item.getString() != "")
+                		{
+                			user.lat = item.getString();
+                		}
+                	}
+                	else if (item.getFieldName().equals("lon"))
+                	{
+                		if (item.getString() != "")
+                		{
+                			user.lon = item.getString();
+                		}
                 	}
                 }
             }
-        	
-            request.setAttribute("message", "Upload successful; from UUID: " + fromuuid + ", to UUIDs: " + touuid);
-
-            FileObject file = new FileObject();
-            file.filename = filename;
-            file.fromuuid = fromuuid;
-            file.touuid = touuid;
-            file.type = type;
-            file.timestamp = new Date();
-            FileManager.add(file);
             
-            String[] recipients = touuid.split(",");
-            
-            for (int i = 0; i < recipients.length; i++)
+            if (user.name != null && user.uuid != null && user.lat != null && user.lon != null)
             {
-	            Sender sender = new Sender(API_KEY);
-	            Message message = new Message.Builder()
-	            .timeToLive(60*60*24) // one day
-	            .delayWhileIdle(false)
-	            .addData("sendername", UserManager.getUserByUUID(fromuuid).name)
-	            .addData("filename", filename)
-	            .addData("type", type)
-	            .build();
-	            sender.send(message, UserManager.getUserByUUID(recipients[i]).regid, 5);
+            	UserManager.add(user);
+            	request.setAttribute("message", UserManager.JSONify(UserManager.getUsersByRadius(user.lat, user.lon, 500.0)));
+            	
+            	//********************** set real distance threshold
+            }
+            else
+            {
+            	request.setAttribute("message", "");
+            }
+            
+            if (file.fromuuid != null && file.touuid != null && file.filename != null && file.type != null)
+            {
+	            file.timestamp = new Date();
+	            FileManager.add(file);
+            
+	            String[] recipients = file.touuid.split(",");
+	            
+	            for (int i = 0; i < recipients.length; i++)
+	            {
+		            Sender sender = new Sender(API_KEY);
+		            Message message = new Message.Builder()
+		            .timeToLive(60*60*24) // one day
+		            .delayWhileIdle(false)
+		            .addData("sendername", UserManager.getUserByUUID(file.fromuuid).name)
+		            .addData("filename", file.filename)
+		            .addData("type", file.type)
+		            .build();
+		            sender.send(message, UserManager.getUserByUUID(recipients[i]).regid, 5);
+	            }
             }
         }
         catch (Exception ex)
         {
-            request.setAttribute("message", "There was an error: " + ex.getMessage() + "; from UUID: " + fromuuid + ", to UUID: " + touuid + " (" + UserManager.getUserByUUID(touuid).regid + ")");
+            request.setAttribute("message", "");
         }
-        getServletContext().getRequestDispatcher("/message.jsp").forward(request, response);
     }
 }

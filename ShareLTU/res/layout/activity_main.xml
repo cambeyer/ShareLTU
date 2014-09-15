@@ -44,6 +44,7 @@
         android:layout_alignLeft="@+id/textView2"
         android:layout_below="@+id/textView2"
         android:layout_marginTop="18dp"
+        android:contentDescription="@string/logo_description"
         android:src="@drawable/ic_launcher" />
 
 </RelativeLayout>

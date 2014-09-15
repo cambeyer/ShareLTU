@@ -62,4 +62,17 @@ public class UserManager {
 	    double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 	    return earthRadius * c;
 	}
+
+	public static String JSONify(ArrayList<UserObject> usersByRadius) {
+		String result = "";
+		for (int i = 0; i < usersByRadius.size(); i++)
+		{
+			result += usersByRadius.get(i).uuid + "_" + usersByRadius.get(i).name.replace(",", "");
+			if (i + 1 < usersByRadius.size())
+			{
+				result += ",";
+			}
+		}
+		return result;
+	}
 }
