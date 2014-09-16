@@ -33,7 +33,7 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.provider.ContactsContract;
-import android.telephony.TelephonyManager;
+import android.provider.Settings.Secure;
 import android.util.Log;
 
 public class LocationService extends Service {
@@ -97,8 +97,9 @@ public class LocationService extends Service {
 	    c.close();
 	    
         context = getApplicationContext();
-	    uuid = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getDeviceId();
-	    PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+
+        uuid = Secure.getString(context.getContentResolver(), Secure.ANDROID_ID);
+        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
 	    wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "DoNotSleep");
 	    
         // Check device for Play Services APK. If check succeeds, proceed with

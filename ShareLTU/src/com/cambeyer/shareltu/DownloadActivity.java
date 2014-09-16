@@ -26,7 +26,6 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -43,7 +42,6 @@ public class DownloadActivity extends ListActivity {
 
     static final String TAG = "Download";
     Context context;
-    String uuid;
     
     public String sendername;
     public String fromuuid;
@@ -92,7 +90,6 @@ public class DownloadActivity extends ListActivity {
 	    buildFileList();
 		
         context = getApplicationContext();
-    	uuid = ((TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE)).getDeviceId();
     	
     	kickoff();
 	}
@@ -257,7 +254,7 @@ public class DownloadActivity extends ListActivity {
     	        MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
     	        entityBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
     			
-    	        entityBuilder.addTextBody("uuid", uuid);
+    	        entityBuilder.addTextBody("uuid", LocationService.uuid);
     	        entityBuilder.addTextBody("filename", filename);
     	        
     	        HttpEntity entity = entityBuilder.build();
