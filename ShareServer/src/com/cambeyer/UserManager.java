@@ -1,6 +1,8 @@
 package com.cambeyer;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 
 public class UserManager {
 	
@@ -74,5 +76,28 @@ public class UserManager {
 			}
 		}
 		return result;
+	}
+	
+	public static void removeStaleUsers() {
+		for (int i = 0; i < users.size(); i++) {
+	        Calendar cal1 = Calendar.getInstance();
+	        cal1.setTime(users.get(i).timestamp);
+	        Calendar cal2 = Calendar.getInstance();
+	        cal2.setTime(new Date());
+	        long minutesBetween = 0;
+	        while (cal1.before(cal2))
+	        {
+	            cal1.add(Calendar.MINUTE, 1);
+	            minutesBetween++;
+	        }
+	        
+	        if (minutesBetween >= 60) {		//delete users older than 60 minutes (outdated)
+	        	try {
+		        	users.remove(i);
+		        	i--;
+	        	} catch (Exception ex) {
+	        	}
+	        }
+		}
 	}
 }

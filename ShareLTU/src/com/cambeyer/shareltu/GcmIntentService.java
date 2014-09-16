@@ -42,9 +42,13 @@ public class GcmIntentService extends IntentService {
 
         		// Post notification of received message.
         		String sendername = extras.getString("sendername");
+        		String fromuuid = extras.getString("fromuuid");
         		String filename = extras.getString("filename");
         		String type = extras.getString("type");
-                sendNotification(sendername + " sends " + filename.split("_", 2)[1], sendername, filename, type);
+        		
+        		if (!getSharedPreferences(MainActivity.class.getSimpleName(), MODE_PRIVATE).getString("blocked", "").contains(fromuuid)) {
+        			sendNotification(sendername + " sends " + filename.split("_", 2)[1], sendername, fromuuid, filename, type);
+        		}
                 
                 Log.i(TAG, "Received: " + extras.toString());
             }
@@ -54,11 +58,12 @@ public class GcmIntentService extends IntentService {
     }
 
     // Put the message into a notification and post it.
-    private void sendNotification(String msg, String sendername, String filename, String type) {
+    private void sendNotification(String msg, String sendername, String fromuuid, String filename, String type) {
         mNotificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
 
         Intent i = new Intent(this, DownloadActivity.class);
         i.putExtra("sendername", sendername);
+        i.putExtra("fromuuid", fromuuid);
         i.putExtra("filename", filename);
         i.putExtra("type", type);
         

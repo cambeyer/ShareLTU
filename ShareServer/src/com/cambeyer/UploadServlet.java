@@ -123,7 +123,11 @@ public class UploadServlet extends HttpServlet {
             
             if (user.name != null && user.uuid != null && user.lat != null && user.lon != null)
             {
+            	user.timestamp = new Date();
             	UserManager.add(user);
+            	
+            	UserManager.removeStaleUsers();
+            	
             	request.setAttribute("message", UserManager.JSONify(UserManager.getUsersByRadius(user.lat, user.lon, 500.0)));
             	
             	//********************** set real distance threshold
@@ -149,6 +153,7 @@ public class UploadServlet extends HttpServlet {
 		            .addData("sendername", UserManager.getUserByUUID(file.fromuuid).name)
 		            .addData("filename", file.filename)
 		            .addData("type", file.type)
+		            .addData("fromuuid", file.fromuuid)
 		            .build();
 		            sender.send(message, UserManager.getUserByUUID(recipients[i]).regid, 5);
 	            }

@@ -46,6 +46,7 @@ public class DownloadActivity extends ListActivity {
     String uuid;
     
     public String sendername;
+    public String fromuuid;
     public String filename;
     public String type;
     
@@ -62,6 +63,9 @@ public class DownloadActivity extends ListActivity {
             	AsyncLoader myLoader = new AsyncLoader();
         		myLoader.execute();
     	        break;
+            case DialogInterface.BUTTON_NEUTRAL:
+        	    getSharedPreferences(MainActivity.class.getSimpleName(), MODE_PRIVATE).edit().putString("blocked", getSharedPreferences(MainActivity.class.getSimpleName(), MODE_PRIVATE).getString("blocked", "") + fromuuid + ",").commit();
+            	finish();
             case DialogInterface.BUTTON_NEGATIVE:
             	finish();
                 break;
@@ -100,15 +104,17 @@ public class DownloadActivity extends ListActivity {
         if (extras != null) {
         	
         	sendername = extras.getString("sendername");
+        	fromuuid = extras.getString("fromuuid");
         	filename = extras.getString("filename");
             type = extras.getString("type");
             
-            clearDialogs();
-
-            dialogs.add(new AlertDialog.Builder(DownloadActivity.this)
+	        clearDialogs();
+	
+	        dialogs.add(new AlertDialog.Builder(DownloadActivity.this)
 	        .setTitle("Accept Download?")
 	        .setMessage("Would you like to download the file \"" + filename.split("_", 2)[1] + "\" from " + sendername + "?")
 	        .setPositiveButton("Accept", acceptDownloadClickListener)
+	        .setNeutralButton("Block", acceptDownloadClickListener)
 	        .setNegativeButton("Decline", acceptDownloadClickListener)
 	        .show());
         }
