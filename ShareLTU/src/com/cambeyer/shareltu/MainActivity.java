@@ -84,45 +84,70 @@ public class MainActivity extends Activity {
 	
 	public void chooseRecipients()
 	{
-		//************** we're relying on the fact that the locationservice has gotten a location, posted it, and got a response of nearby candidates
-    	final CharSequence[] namelist = LocationService.names.toArray(new CharSequence[LocationService.names.size()]);
-    	final CharSequence[] uuidlist = LocationService.uuids.toArray(new CharSequence[LocationService.uuids.size()]);
-    	itemsChecked = new boolean[namelist.length];
-    	
-    	AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-    	builder.setTitle("Choose Recipients");
-    	
-    	builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-                for (int i = 0; i < namelist.length; i++) {
-	                if (itemsChecked[i]) {
-	                	recipients = recipients + uuidlist[i] + ",";
-	                    itemsChecked[i] = false;
+		if (LocationService.uuids.size() > 0) {
+			
+			//************** we're relying on the fact that the locationservice has gotten a location, posted it, and got a response of nearby candidates
+			
+	    	final CharSequence[] namelist = LocationService.names.toArray(new CharSequence[LocationService.names.size()]);
+	    	final CharSequence[] uuidlist = LocationService.uuids.toArray(new CharSequence[LocationService.uuids.size()]);
+	    	itemsChecked = new boolean[namelist.length];
+	    	
+	    	AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+	    	builder.setTitle("Choose Recipients");
+	    	
+	    	builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+	            public void onClick(DialogInterface dialog, int which) {
+	                for (int i = 0; i < namelist.length; i++) {
+		                if (itemsChecked[i]) {
+		                	recipients = recipients + uuidlist[i] + ",";
+		                    itemsChecked[i] = false;
+		                }
 	                }
-                }
-    	    	new AsyncLoader().execute();
-            }
-        });
-    	
-    	builder.setNeutralButton("Refresh", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-               chooseRecipients();
-            }
-        });
-    	
-    	builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-               finish();
-            }
-        });
-    	
-    	builder.setMultiChoiceItems(namelist, itemsChecked, new DialogInterface.OnMultiChoiceClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which, boolean isChecked) {
-					itemsChecked[which] = isChecked;	
-			}
-		});
-    	builder.show();
+	    	    	new AsyncLoader().execute();
+	            }
+	        });
+	    	
+	    	builder.setNeutralButton("Refresh", new DialogInterface.OnClickListener() {
+	            public void onClick(DialogInterface dialog, int id) {
+	               chooseRecipients();
+	            }
+	        });
+	    	
+	    	builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+	            public void onClick(DialogInterface dialog, int id) {
+	               finish();
+	            }
+	        });
+	    	
+	    	builder.setMultiChoiceItems(namelist, itemsChecked, new DialogInterface.OnMultiChoiceClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+						itemsChecked[which] = isChecked;	
+				}
+			});
+	    	builder.show();
+		}
+		else
+		{
+	    	AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+	    	builder.setTitle("No Recipients Available");
+	    	
+	    	builder.setMessage("It appears as though no one is nearby!  Check your GPS and Data settings to ensure the ShareLTU app can properly triage your file!");
+	    	
+	    	builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+	            public void onClick(DialogInterface dialog, int id) {
+	               finish();
+	            }
+	        });
+	    	
+	    	builder.setNegativeButton("Refresh", new DialogInterface.OnClickListener() {
+	            public void onClick(DialogInterface dialog, int id) {
+	               chooseRecipients();
+	            }
+	        });
+	    	
+	    	builder.show();
+		}
 	}
 
 	@Override
