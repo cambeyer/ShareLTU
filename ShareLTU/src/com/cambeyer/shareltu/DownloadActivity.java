@@ -145,6 +145,11 @@ public class DownloadActivity extends ListActivity {
 	 }
 	
 	public void buildFileList() {
+		File dlpath = new File(DOWNLOADS_PATH + "ShareLTU");
+        if (!dlpath.exists())
+        {
+            dlpath.mkdir();
+        }
         String path = DOWNLOADS_PATH + "ShareLTU";
 		File f = new File(path);        
 		File file[] = f.listFiles();
