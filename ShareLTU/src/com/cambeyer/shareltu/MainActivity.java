@@ -104,6 +104,12 @@ public class MainActivity extends Activity {
             }
         });
     	
+    	builder.setNeutralButton("Refresh", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+               chooseRecipients();
+            }
+        });
+    	
     	builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                finish();
