@@ -1,5 +1,7 @@
 package com.cambeyer.shareltu;
 
+import java.util.Calendar;
+import java.util.Date;
 import java.util.ArrayList;
 
 import org.apache.http.HttpEntity;
@@ -45,8 +47,8 @@ public class LocationService extends Service {
 	
     static final String TAG = "LocationService";
     
-    public static String recentLat = "";
-    public static String recentLon = "";
+    public static Location lastLocation = null;
+    public static Date lastSubmitted = null;
     
     public static ArrayList<String> uuids = new ArrayList<String>();
     public static ArrayList<String> names = new ArrayList<String>();
@@ -126,10 +128,28 @@ public class LocationService extends Service {
 	    locationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
 	    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5 * 60 * 1000, 500, listener);
 	    
-	    locChanged(locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER));
+    	startLocationBackgroundTask(locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER));
 	}
 	
-	public static void locChanged(Location location) {
+	public static long calcMinutes(Date d1, Date d2) {
+		if (d1 == null)
+		{
+			return 0;
+		}
+        Calendar cal1 = Calendar.getInstance();
+        cal1.setTime(d1);
+        Calendar cal2 = Calendar.getInstance();
+        cal2.setTime(d2);
+        long minutesBetween = 0;
+        while (cal1.before(cal2))
+        {
+            cal1.add(Calendar.MINUTE, 1);
+            minutesBetween++;
+        }
+        return minutesBetween;
+	}
+	
+	public static void fetchCandidateRecipientsFromServer(Location location) {
         Log.v(TAG, "Location Changed");
     	
         if (location == null)
@@ -138,70 +158,68 @@ public class LocationService extends Service {
             return;
         }
         
-        recentLat = location.getLatitude() + "";
-        recentLon = location.getLongitude() + "";
+        lastLocation = location;
         
-        Log.v(TAG, "lat: " + recentLat + ", lon: " + recentLon);
+        Log.v(TAG, "Minutes since last location update: " + calcMinutes(lastSubmitted, new Date()));
+        lastSubmitted = new Date();
+        
+        Log.v(TAG, "lat: " + String.valueOf(lastLocation.getLatitude()) + ", lon: " + String.valueOf(lastLocation.getLongitude()));
 
         if (isConnectedToInternet(context)) {
             try {
-        	    new AsyncTask<Void, Void, Void>() {
-        	        @Override
-        	        protected Void doInBackground(Void... params) {
-        				
-        				Log.v(TAG, "About to contact server");
-        				
-        				try {
-        			        HttpClient client = new DefaultHttpClient();          
-        			        HttpPost post = new HttpPost(SERVER_URL);
-        			        MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
-        			        entityBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-        					
-        			        entityBuilder.addTextBody("name", name);
-        			        entityBuilder.addTextBody("uuid", uuid);
-        			        entityBuilder.addTextBody("regid", regid);
-        			        entityBuilder.addTextBody("lat", recentLat);
-        			        entityBuilder.addTextBody("lon", recentLon);
-        			        
-        			        HttpEntity entity = entityBuilder.build();
-        			        post.setEntity(entity);
-        			        HttpResponse response = client.execute(post);
-        			        HttpEntity httpEntity = response.getEntity();
-        			        String result = EntityUtils.toString(httpEntity);
-        			        
-        			        Log.v(TAG, "Received: " + result);
-        			        
-        			        if (!result.isEmpty())
-        			        {
-            			        names.clear();
-            			        uuids.clear();
-        			        
-	        			        String[] chunks = result.split(",");
-	        			        for (int i = 0; i < chunks.length; i++)
-	        			        {
-	        			        	uuids.add(chunks[i].split("_", 2)[0]);
-	        			        	names.add(chunks[i].split("_", 2)[1]);
-        			        }
-        			        }
-        				}
-        				catch (Exception ex)
-        				{
-        					ex.printStackTrace();
-        				}
-        				
-        			    return null;
-        	        }
-        	    }.execute();
+				Log.v(TAG, "About to contact server");
+				
+		        HttpClient client = new DefaultHttpClient();          
+		        HttpPost post = new HttpPost(SERVER_URL);
+		        MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
+		        entityBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+				
+		        entityBuilder.addTextBody("name", name);
+		        entityBuilder.addTextBody("uuid", uuid);
+		        entityBuilder.addTextBody("regid", regid);
+		        entityBuilder.addTextBody("lat", String.valueOf(lastLocation.getLatitude()));
+		        entityBuilder.addTextBody("lon", String.valueOf(lastLocation.getLongitude()));
+		        
+		        HttpEntity entity = entityBuilder.build();
+		        post.setEntity(entity);
+		        HttpResponse response = client.execute(post);
+		        HttpEntity httpEntity = response.getEntity();
+		        String result = EntityUtils.toString(httpEntity);
+		        
+		        Log.v(TAG, "Received: " + result);
+		        
+		        if (!result.isEmpty())
+		        {
+			        names.clear();
+			        uuids.clear();
+		        
+			        String[] chunks = result.split(",");
+			        for (int i = 0; i < chunks.length; i++)
+			        {
+			        	uuids.add(chunks[i].split("_", 2)[0]);
+			        	names.add(chunks[i].split("_", 2)[1]);
+		        }
+		        }
             } catch (Exception e) {
             }
         }
+	}
+	
+	public static void startLocationBackgroundTask(final Location location) {
+	    new AsyncTask<Void, Void, Void>() {
+	        @Override
+	        protected Void doInBackground(Void... params) {
+	        	fetchCandidateRecipientsFromServer(location);
+	            return null;
+	        }
+	    }.execute();
 	}
 	
 	private LocationListener listener = new LocationListener() {
 	
 	    @Override
 	    public void onLocationChanged(Location location) {
-	    	locChanged(location);
+	    	startLocationBackgroundTask(location);
 	    }
 	
 	    @Override

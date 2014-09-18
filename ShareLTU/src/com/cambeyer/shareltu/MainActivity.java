@@ -60,7 +60,7 @@ public class MainActivity extends Activity {
         	    fileUri = (Uri) intent.getParcelableExtra(Intent.EXTRA_STREAM);
         	    if (fileUri != null)
         	    {
-        	    	chooseRecipients();
+        	    	checkLocationStatus();
         	    }
         	    else
         	    {
@@ -82,11 +82,76 @@ public class MainActivity extends Activity {
         }
 	}
 	
+	public void checkLocationStatus()
+	{
+		if (LocationService.lastLocation == null)
+		{
+			Log.v(TAG, "The location is null.  Seems like a GPS issue");
+	    	AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+	    	builder.setTitle("No GPS Data");
+	    	
+	    	builder.setMessage("It appears as though the GPS has not given us any information to locate you!  Check your GPS settings to ensure the ShareLTU app can properly triage your file!");
+	    	
+	    	builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+	            public void onClick(DialogInterface dialog, int id) {
+	               finish();
+	            }
+	        });
+	    	
+	    	builder.setNegativeButton("Refresh", new DialogInterface.OnClickListener() {
+	            public void onClick(DialogInterface dialog, int id) {
+	               checkLocationStatus();
+	            }
+	        });
+	    	
+	    	builder.show();
+	    	return;
+		}
+		else if (LocationService.calcMinutes(LocationService.lastSubmitted, new Date()) > 5)
+		{
+			Log.v(TAG, "The location is pretty stale. Requesting a new list of people from the server");
+			
+		    new AsyncTask<Void, Void, Void>() {
+		    	
+		        public ProgressDialog pdLoading;
+		    	
+		        @Override
+		        protected void onPreExecute() {
+		            pdLoading = new ProgressDialog(MainActivity.this);
+		            pdLoading.setMessage("\tFetching Potential Recipients...");
+		            pdLoading.setCancelable(false);
+		            pdLoading.setCanceledOnTouchOutside(false);
+		            
+			  	    try {
+			            pdLoading.show();
+			  	    } catch (Exception ex) {
+			  	    }
+		        }
+		        @Override
+		        protected Void doInBackground(Void... params) {
+					LocationService.fetchCandidateRecipientsFromServer(LocationService.lastLocation);
+		            return null;
+		        }
+		        @Override
+		        protected void onPostExecute(Void result) {
+		          	try {
+		          		pdLoading.dismiss();
+		          	} catch(Exception ex) {
+		          	}
+					chooseRecipients();
+		        }
+		    }.execute();
+		}
+		else
+		{
+			Log.v(TAG, "The location isn't null and isn't old, so we should be good to go");
+			chooseRecipients();
+		}
+	}
+	
 	public void chooseRecipients()
 	{
 		if (LocationService.uuids.size() > 0) {
-			
-			//************** we're relying on the fact that the locationservice has gotten a location, posted it, and got a response of nearby candidates
 			
 	    	final CharSequence[] namelist = LocationService.names.toArray(new CharSequence[LocationService.names.size()]);
 	    	final CharSequence[] uuidlist = LocationService.uuids.toArray(new CharSequence[LocationService.uuids.size()]);
@@ -109,7 +174,7 @@ public class MainActivity extends Activity {
 	    	
 	    	builder.setNeutralButton("Refresh", new DialogInterface.OnClickListener() {
 	            public void onClick(DialogInterface dialog, int id) {
-	               chooseRecipients();
+	               checkLocationStatus();
 	            }
 	        });
 	    	
@@ -130,9 +195,9 @@ public class MainActivity extends Activity {
 		else
 		{
 	    	AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-	    	builder.setTitle("No Recipients Available");
+	    	builder.setTitle("No Recipients Nearby");
 	    	
-	    	builder.setMessage("It appears as though no one is nearby!  Check your GPS and Data settings to ensure the ShareLTU app can properly triage your file!");
+	    	builder.setMessage("It appears as though there is no one nearby!");
 	    	
 	    	builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
 	            public void onClick(DialogInterface dialog, int id) {
@@ -142,7 +207,7 @@ public class MainActivity extends Activity {
 	    	
 	    	builder.setNegativeButton("Refresh", new DialogInterface.OnClickListener() {
 	            public void onClick(DialogInterface dialog, int id) {
-	               chooseRecipients();
+	               checkLocationStatus();
 	            }
 	        });
 	    	
@@ -184,8 +249,6 @@ public class MainActivity extends Activity {
         protected Void doInBackground(Void... params) {
         	
 	    	doUpload(getInputStream(fileUri));
-	    	finish();
-
 	        return null;
         }
         
@@ -195,6 +258,8 @@ public class MainActivity extends Activity {
           		pdLoading.dismiss();
           	} catch(Exception ex) {
           	}
+          	
+	    	finish();
         }
         
     	public void doUpload(InputStream input)
