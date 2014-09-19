@@ -4,6 +4,7 @@ import java.util.Date;
 
 public class UserObject {
 	
+	public String model = null;
 	public String uuid = null;
 	public String regid = null;
 	public String name = null;

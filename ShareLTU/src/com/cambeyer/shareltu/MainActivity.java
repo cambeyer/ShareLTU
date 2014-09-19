@@ -107,9 +107,9 @@ public class MainActivity extends Activity {
 	    	builder.show();
 	    	return;
 		}
-		else if (LocationService.calcMinutes(LocationService.lastSubmitted, new Date()) > 5)
+		else //if (LocationService.calcMinutes(LocationService.lastSubmitted, new Date()) > 5)
 		{
-			Log.v(TAG, "The location is pretty stale. Requesting a new list of people from the server");
+			Log.v(TAG, "The location isn't brand new. Requesting a new list of people from the server");
 			
 		    new AsyncTask<Void, Void, Void>() {
 		    	
@@ -142,11 +142,11 @@ public class MainActivity extends Activity {
 		        }
 		    }.execute();
 		}
-		else
-		{
-			Log.v(TAG, "The location isn't null and isn't old, so we should be good to go");
-			chooseRecipients();
-		}
+//		else
+//		{
+//			Log.v(TAG, "The location isn't null and isn't old, so we should be good to go");
+//			chooseRecipients();
+//		}
 	}
 	
 	public void chooseRecipients()

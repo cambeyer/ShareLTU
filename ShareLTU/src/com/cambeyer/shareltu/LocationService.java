@@ -24,12 +24,14 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.Cursor;
+import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -64,6 +66,7 @@ public class LocationService extends Service {
     public static String regid;
     public static String uuid;
     public static String name;
+    public static String model;
 	
 	@Override
 	public IBinder onBind(Intent arg0) {
@@ -100,6 +103,7 @@ public class LocationService extends Service {
 	    
         context = getApplicationContext();
 
+        model = getDeviceName();
         uuid = Secure.getString(context.getContentResolver(), Secure.ANDROID_ID);
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
 	    wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "DoNotSleep");
@@ -121,14 +125,66 @@ public class LocationService extends Service {
 	    return START_STICKY;
 	}
 	
+	public String getDeviceName() {
+	  String manufacturer = Build.MANUFACTURER;
+	  String model = Build.MODEL;
+	  if (model.startsWith(manufacturer)) {
+	    return capitalize(model);
+	  } else {
+	    return capitalize(manufacturer) + " " + model;
+	  }
+	}
+
+
+	private String capitalize(String s) {
+	  if (s == null || s.length() == 0) {
+	    return "";
+	  }
+	  char first = s.charAt(0);
+	  if (Character.isUpperCase(first)) {
+	    return s;
+	  } else {
+	    return Character.toUpperCase(first) + s.substring(1);
+	  }
+	} 
+	
 	public void doCommunication()
 	{
 		Log.v(TAG, "regid: " + regid);
 		
 	    locationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
-	    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5 * 60 * 1000, 500, listener);
-	    
     	startLocationBackgroundTask(locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER));
+    	
+    	Criteria criteria = new Criteria();
+        
+        criteria.setAccuracy(Criteria.ACCURACY_FINE);
+        
+        criteria.setAltitudeRequired(false);
+        criteria.setSpeedRequired(false);
+        criteria.setBearingRequired(false);
+        criteria.setCostAllowed(false);
+
+		int minTimeBetweenUpdatesms = 1000 * 60;
+		int minDistanceBetweenUpdatesMeters = 100;
+
+		String provider = locationManager.getBestProvider(criteria, true);
+		
+		Log.v(TAG, "Best provider: " + provider);
+				
+		locationManager.requestLocationUpdates(provider, minTimeBetweenUpdatesms, minDistanceBetweenUpdatesMeters, new LocationListener() {
+			public void onLocationChanged(Location location) {
+				startLocationBackgroundTask(location);				
+			}
+		
+			public void onProviderDisabled(String provider) {
+			}
+		
+			public void onProviderEnabled(String provider) {
+			}
+		
+			public void onStatusChanged(String provider, int status, Bundle extras) {	
+			}				
+		});
 	}
 	
 	public static long calcMinutes(Date d1, Date d2) {
@@ -175,6 +231,7 @@ public class LocationService extends Service {
 		        entityBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
 				
 		        entityBuilder.addTextBody("name", name);
+		        entityBuilder.addTextBody("model", model);
 		        entityBuilder.addTextBody("uuid", uuid);
 		        entityBuilder.addTextBody("regid", regid);
 		        entityBuilder.addTextBody("lat", String.valueOf(lastLocation.getLatitude()));
@@ -197,7 +254,8 @@ public class LocationService extends Service {
 			        for (int i = 0; i < chunks.length; i++)
 			        {
 			        	uuids.add(chunks[i].split("_", 2)[0]);
-			        	names.add(chunks[i].split("_", 2)[1]);
+			        	String tempName = chunks[i].split("_", 2)[1];
+			        	names.add(tempName.split("\\|", 2)[0] + " (" + tempName.split("\\|", 2)[1] + ")");
 		        }
 		        }
             } catch (Exception e) {
@@ -214,26 +272,6 @@ public class LocationService extends Service {
 	        }
 	    }.execute();
 	}
-	
-	private LocationListener listener = new LocationListener() {
-	
-	    @Override
-	    public void onLocationChanged(Location location) {
-	    	startLocationBackgroundTask(location);
-	    }
-	
-	    @Override
-	    public void onProviderDisabled(String provider) {
-	    }
-	
-	    @Override
-	    public void onProviderEnabled(String provider) {
-	    }
-	
-	    @Override
-	    public void onStatusChanged(String provider, int status, Bundle extras) {
-	    }
-	};
 	
 	@Override
 	public void onDestroy() {

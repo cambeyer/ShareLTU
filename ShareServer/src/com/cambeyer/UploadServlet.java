@@ -92,7 +92,11 @@ public class UploadServlet extends HttpServlet {
                 	}
                 	
                 	
-                	if (item.getFieldName().equals("regid"))
+                	if (item.getFieldName().equals("model"))
+                	{
+                		user.model = item.getString();
+                	}
+                	else if (item.getFieldName().equals("regid"))
                 	{
                 		user.regid = item.getString();
                 	}

@@ -69,7 +69,7 @@ public class UserManager {
 		String result = "";
 		for (int i = 0; i < usersByRadius.size(); i++)
 		{
-			result += usersByRadius.get(i).uuid + "_" + usersByRadius.get(i).name.replace(",", "");
+			result += usersByRadius.get(i).uuid + "_" + usersByRadius.get(i).name.replace(",", "") + "|" + usersByRadius.get(i).model.replace(",",  "");
 			if (i + 1 < usersByRadius.size())
 			{
 				result += ",";
@@ -91,7 +91,7 @@ public class UserManager {
 	            minutesBetween++;
 	        }
 	        
-	        if (minutesBetween >= 60) {		//delete users older than 60 minutes (outdated)
+	        if (minutesBetween >= 600) {		//delete users older than 60 minutes (outdated)
 	        	try {
 		        	users.remove(i);
 		        	i--;
