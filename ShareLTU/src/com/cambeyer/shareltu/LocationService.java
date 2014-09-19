@@ -104,6 +104,8 @@ public class LocationService extends Service {
         context = getApplicationContext();
 
         model = getDeviceName();
+        Log.v(TAG, "Model: " + model);
+        
         uuid = Secure.getString(context.getContentResolver(), Secure.ANDROID_ID);
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
 	    wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "DoNotSleep");
@@ -245,11 +247,11 @@ public class LocationService extends Service {
 		        
 		        Log.v(TAG, "Received: " + result);
 		        
+		        names.clear();
+		        uuids.clear();
+		        
 		        if (!result.isEmpty())
 		        {
-			        names.clear();
-			        uuids.clear();
-		        
 			        String[] chunks = result.split(",");
 			        for (int i = 0; i < chunks.length; i++)
 			        {
