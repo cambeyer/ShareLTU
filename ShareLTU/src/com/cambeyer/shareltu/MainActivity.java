@@ -3,7 +3,10 @@ package com.cambeyer.shareltu;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -28,9 +31,20 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.MediaStore.MediaColumns;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
+import android.view.View.OnLayoutChangeListener;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
+import android.widget.CheckedTextView;
+import android.widget.EditText;
+import android.widget.Filter;
+import android.widget.LinearLayout;
+import android.widget.ListView;
 
 public class MainActivity extends Activity {
 	
@@ -152,45 +166,119 @@ public class MainActivity extends Activity {
 	public void chooseRecipients()
 	{
 		if (LocationService.uuids.size() > 0) {
-			
-	    	final CharSequence[] namelist = LocationService.names.toArray(new CharSequence[LocationService.names.size()]);
-	    	final CharSequence[] uuidlist = LocationService.uuids.toArray(new CharSequence[LocationService.uuids.size()]);
-	    	itemsChecked = new boolean[namelist.length];
-	    	
-	    	AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-	    	builder.setTitle("Choose Recipients");
-	    	
-	    	builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-	            public void onClick(DialogInterface dialog, int which) {
-	                for (int i = 0; i < namelist.length; i++) {
-		                if (itemsChecked[i]) {
-		                	recipients = recipients + uuidlist[i] + ",";
-		                    itemsChecked[i] = false;
-		                }
+									
+	        final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+	        final List<ListItemWithIndex> allItems = new ArrayList<ListItemWithIndex>();
+	        final List<ListItemWithIndex> filteredItems = new ArrayList<ListItemWithIndex>();
+
+	        for (int i = 0; i < LocationService.names.size(); i++) {
+	            final ListItemWithIndex listItemWithIndex = new ListItemWithIndex(i, LocationService.names.get(i));
+	            allItems.add(listItemWithIndex);
+	            filteredItems.add(listItemWithIndex);
+	        }
+
+	        dialogBuilder.setTitle("Choose Recipients");
+	        	        
+	        final ArrayAdapter<ListItemWithIndex> objectsAdapter = new ArrayAdapter<ListItemWithIndex>(this, android.R.layout.simple_list_item_multiple_choice, filteredItems) {
+	            @Override
+	            public Filter getFilter() {
+	                return new Filter() {
+	                    @SuppressWarnings("unchecked")
+	                    @Override
+	                    protected void publishResults(final CharSequence constraint, final FilterResults results) {
+	                        filteredItems.clear();
+	                        filteredItems.addAll((List<ListItemWithIndex>) results.values);
+	                        notifyDataSetChanged();
+	                    }
+
+	                    @Override
+	                    protected FilterResults performFiltering(final CharSequence constraint) {
+	                        final FilterResults results = new FilterResults();
+
+	                        final String filterString = constraint.toString();
+	                        final ArrayList<ListItemWithIndex> list = new ArrayList<ListItemWithIndex>();
+	                        for (final ListItemWithIndex obj : allItems) {
+	                            final String objStr = obj.toString();
+	                            if ("".equals(filterString) || objStr.toLowerCase(Locale.getDefault()).contains(filterString.toLowerCase(Locale.getDefault()))) {
+	                                list.add(obj);
+	                            }
+	                        }
+
+	                        results.values = list;
+	                        results.count = list.size();
+	                        return results;
+	                    }
+	                };
+	            }
+	        };
+	        
+	        final ListView listView = new ListView(this);
+	        listView.addOnLayoutChangeListener(new OnLayoutChangeListener() {
+				@Override
+				public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+	                for (int i = 0; i < listView.getChildCount(); i++) {
+	                	((CheckedTextView) listView.getChildAt(i)).setChecked(allItems.get(filteredItems.get(i).index).selected);
 	                }
-	    	    	new AsyncLoader().execute();
+				}
+	        });
+	        listView.setAdapter(objectsAdapter);
+
+	        final EditText searchEditText = new EditText(this);
+	        searchEditText.addTextChangedListener(new TextWatcher() {
+	            @Override
+	            public void onTextChanged(final CharSequence arg0, final int arg1, final int arg2, final int arg3) {
+	            }
+
+	            @Override
+	            public void beforeTextChanged(final CharSequence arg0, final int arg1, final int arg2, final int arg3) {
+	            }
+
+	            @Override
+	            public void afterTextChanged(final Editable arg0) {
+	                objectsAdapter.getFilter().filter(searchEditText.getText());
 	            }
 	        });
-	    	
-	    	builder.setNeutralButton("Refresh", new DialogInterface.OnClickListener() {
+
+	        final LinearLayout linearLayout = new LinearLayout(this);
+	        linearLayout.setOrientation(LinearLayout.VERTICAL);
+	        linearLayout.addView(searchEditText, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+	        final LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0);
+	        layoutParams.weight = 1;
+	        linearLayout.addView(listView, layoutParams);
+	        dialogBuilder.setView(linearLayout);
+	        
+	    	dialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+	            public void onClick(DialogInterface dialog, int which) {
+	            	for (int i = 0; i < allItems.size(); i++) {
+	            		if (allItems.get(i).selected){
+	            			recipients += LocationService.uuids.get(i) + ",";
+	            		}
+	            	}
+	    	    	new AsyncLoader().execute();
+	            }
+	    	});
+	    	dialogBuilder.setNeutralButton("Refresh", new DialogInterface.OnClickListener() {
 	            public void onClick(DialogInterface dialog, int id) {
 	               checkLocationStatus();
 	            }
-	        });
-	    	
-	    	builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+	    	});
+	    	dialogBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
 	            public void onClick(DialogInterface dialog, int id) {
 	               finish();
 	            }
-	        });
+	    	});
 	    	
-	    	builder.setMultiChoiceItems(namelist, itemsChecked, new DialogInterface.OnMultiChoiceClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int which, boolean isChecked) {
-						itemsChecked[which] = isChecked;	
-				}
-			});
-	    	builder.show();
+	        final AlertDialog dialog = dialogBuilder.create();
+	        listView.setOnItemClickListener(new OnItemClickListener() {
+	            @Override
+	            public void onItemClick(final AdapterView<?> parent, final View view, final int position, final long id) {
+	                CheckedTextView check = (CheckedTextView) view;
+	                boolean goingToSet = !check.isChecked();
+	                check.setChecked(goingToSet);
+	                allItems.get(filteredItems.get(position).index).selected = goingToSet;
+	            }
+	        });
+	        dialog.show();
 		}
 		else
 		{
@@ -327,4 +415,22 @@ public class MainActivity extends Activity {
     		return null;
     	}
     } 
+	
+	private static final class ListItemWithIndex {
+        public final int index;
+        public final String value;
+        public boolean selected;
+
+        public ListItemWithIndex(final int index, final String value) {
+            super();
+            selected = false;
+            this.index = index;
+            this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            return value;
+        }
+    }
 }
