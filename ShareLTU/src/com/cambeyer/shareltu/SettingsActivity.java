@@ -7,6 +7,8 @@ import android.content.Context;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
 
 public class SettingsActivity extends Activity {
 
@@ -18,15 +20,20 @@ public class SettingsActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_settings);	
 		
-		getActionBar().setTitle("Settings");  
+		getActionBar().setTitle("Settings"); 
+		
+		((TextView) findViewById(R.id.minTime)).setText(((Long.valueOf(getSharedPreferences(MainActivity.class.getSimpleName(), MODE_PRIVATE).getString("minTime", "180000"))) / 1000 / 60) + "");
+		((TextView) findViewById(R.id.minDist)).setText(getSharedPreferences(MainActivity.class.getSimpleName(), MODE_PRIVATE).getString("minDistance", "500"));
 				
         context = getApplicationContext();
-    	
-    	kickoff();
 	}
 	
-	public void kickoff() {
-
+	public void save(View view) {
+		
+	    getSharedPreferences(MainActivity.class.getSimpleName(), MODE_PRIVATE).edit().putString("minTime", (Long.valueOf(((TextView) findViewById(R.id.minTime)).getText().toString()) * 1000 * 60) + "").commit();
+	    getSharedPreferences(MainActivity.class.getSimpleName(), MODE_PRIVATE).edit().putString("minDistance", ((TextView) findViewById(R.id.minDist)).getText().toString()).commit();
+	    LocationService.requestLocationUpdates();
+	    finish();
 	}
 
 	@Override

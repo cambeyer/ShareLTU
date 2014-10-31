@@ -165,8 +165,8 @@ public class LocationService extends Service {
 	
 	public static void requestLocationUpdates() {
 
-		int minTimeBetweenUpdatesms = Integer.valueOf(context.getSharedPreferences(MainActivity.class.getSimpleName(), MODE_PRIVATE).getString("minTime", "180000"));
-		int minDistanceBetweenUpdatesMeters = Integer.valueOf(context.getSharedPreferences(MainActivity.class.getSimpleName(), MODE_PRIVATE).getString("minDistance", "500"));
+		long minTimeBetweenUpdatesms = Long.valueOf(context.getSharedPreferences(MainActivity.class.getSimpleName(), MODE_PRIVATE).getString("minTime", "180000"));
+		float minDistanceBetweenUpdatesMeters = Float.valueOf(context.getSharedPreferences(MainActivity.class.getSimpleName(), MODE_PRIVATE).getString("minDistance", "500"));
 		
 		Log.v(TAG, "Time: " + minTimeBetweenUpdatesms + " and Distance: " + minDistanceBetweenUpdatesMeters);
 		
