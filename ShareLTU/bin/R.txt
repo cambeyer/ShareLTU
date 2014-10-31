@@ -90,10 +90,10 @@ int drawable ic_plusone_standard_off_client 0x7f02001b
 int drawable ic_plusone_tall_off_client 0x7f02001c
 int drawable powered_by_google_dark 0x7f02001d
 int drawable powered_by_google_light 0x7f02001e
-int id RelativeLayout1 0x7f070019
-int id action_settings 0x7f07001e
+int id LinearLayout1 0x7f070019
+int id action_settings 0x7f070020
 int id book_now 0x7f070010
-int id btnSave 0x7f07001d
+int id btnSave 0x7f07001f
 int id buyButton 0x7f07000a
 int id buy_now 0x7f07000f
 int id buy_with_google 0x7f07000e
@@ -105,6 +105,7 @@ int id holo_dark 0x7f070005
 int id holo_light 0x7f070006
 int id hybrid 0x7f070004
 int id imageView1 0x7f070017
+int id lblRecip 0x7f07001d
 int id match_parent 0x7f07000c
 int id minDist 0x7f07001c
 int id minTime 0x7f07001a
@@ -112,6 +113,7 @@ int id monochrome 0x7f070013
 int id none 0x7f070000
 int id normal 0x7f070001
 int id production 0x7f070007
+int id recipDist 0x7f07001e
 int id sandbox 0x7f070008
 int id satellite 0x7f070002
 int id selectionDetails 0x7f07000b

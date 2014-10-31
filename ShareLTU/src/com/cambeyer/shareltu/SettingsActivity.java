@@ -24,7 +24,8 @@ public class SettingsActivity extends Activity {
 		
 		((TextView) findViewById(R.id.minTime)).setText(((Long.valueOf(getSharedPreferences(MainActivity.class.getSimpleName(), MODE_PRIVATE).getString("minTime", "180000"))) / 1000 / 60) + "");
 		((TextView) findViewById(R.id.minDist)).setText(getSharedPreferences(MainActivity.class.getSimpleName(), MODE_PRIVATE).getString("minDistance", "500"));
-				
+		((TextView) findViewById(R.id.recipDist)).setText(getSharedPreferences(MainActivity.class.getSimpleName(), MODE_PRIVATE).getString("recipDistance", "2000"));
+
         context = getApplicationContext();
 	}
 	
@@ -32,6 +33,8 @@ public class SettingsActivity extends Activity {
 		
 	    getSharedPreferences(MainActivity.class.getSimpleName(), MODE_PRIVATE).edit().putString("minTime", (Long.valueOf(((TextView) findViewById(R.id.minTime)).getText().toString()) * 1000 * 60) + "").commit();
 	    getSharedPreferences(MainActivity.class.getSimpleName(), MODE_PRIVATE).edit().putString("minDistance", ((TextView) findViewById(R.id.minDist)).getText().toString()).commit();
+	    getSharedPreferences(MainActivity.class.getSimpleName(), MODE_PRIVATE).edit().putString("recipDistance", ((TextView) findViewById(R.id.recipDist)).getText().toString()).commit();
+
 	    LocationService.requestLocationUpdates();
 	    finish();
 	}

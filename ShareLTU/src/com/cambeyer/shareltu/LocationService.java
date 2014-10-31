@@ -54,7 +54,6 @@ public class LocationService extends Service {
     
     public static ArrayList<String> uuids = new ArrayList<String>();
     public static ArrayList<String> names = new ArrayList<String>();
-    public static ArrayList<Double> distances = new ArrayList<Double>();
 	
 	private static LocationManager locationManager = null;
 	private static LocationListener locationListener = null;
@@ -270,19 +269,17 @@ public class LocationService extends Service {
 		        
 		        names.clear();
 		        uuids.clear();
-		        distances.clear();
 		        
 		        if (!result.isEmpty())
 		        {
 			        String[] chunks = result.split(",");
 			        for (int i = 0; i < chunks.length; i++)
 			        {
-			        	uuids.add(chunks[i].split("_", 2)[0]);
 			        	String tempName = chunks[i].split("_", 2)[1];
-			        	names.add(tempName.split("\\|", 2)[0] + " (" + tempName.split("\\|", 2)[1].split("\\|", 2)[0] + ")");
-			        	double distance = distFrom(Double.valueOf(tempName.split("\\|", 2)[1].split("\\|", 2)[1].split("\\|", 2)[0]), Double.valueOf(tempName.split("\\|", 2)[1].split("\\|", 2)[1].split("\\|", 2)[1]), lastLocation.getLatitude(), lastLocation.getLongitude());
-			        	distances.add(distance);
-			        	Log.v(TAG, "Distance: " + distance);
+			        	if (distFrom(Double.valueOf(tempName.split("\\|", 2)[1].split("\\|", 2)[1].split("\\|", 2)[0]), Double.valueOf(tempName.split("\\|", 2)[1].split("\\|", 2)[1].split("\\|", 2)[1]), lastLocation.getLatitude(), lastLocation.getLongitude()) < Double.valueOf(context.getSharedPreferences(MainActivity.class.getSimpleName(), MODE_PRIVATE).getString("recipDistance", "2000"))) {
+				        	uuids.add(chunks[i].split("_", 2)[0]);
+				        	names.add(tempName.split("\\|", 2)[0] + " (" + tempName.split("\\|", 2)[1].split("\\|", 2)[0] + ")");
+			        	}
 			        }
 		        }
             } catch (Exception e) {
