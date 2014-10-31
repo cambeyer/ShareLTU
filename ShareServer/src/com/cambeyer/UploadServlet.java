@@ -132,7 +132,7 @@ public class UploadServlet extends HttpServlet {
             	
             	UserManager.removeStaleUsers();
             	
-            	request.setAttribute("message", UserManager.JSONify(UserManager.getUsersByRadius(user.lat, user.lon, 500.0)));
+            	request.setAttribute("message", UserManager.JSONify(UserManager.getUsersByRadius(user.lat, user.lon, 1609.34))); //1609.34 meters = 1 mile
             	
             	//********************** set real distance threshold
             }

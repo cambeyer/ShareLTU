@@ -56,7 +56,8 @@ public class LocationService extends Service {
     public static ArrayList<String> names = new ArrayList<String>();
     public static ArrayList<Double> distances = new ArrayList<Double>();
 	
-	private LocationManager locationManager;
+	private static LocationManager locationManager = null;
+	private static LocationListener locationListener = null;
 	
     public static final String PROPERTY_REG_ID = "registration_id";		//used for storing shared prefs
     private static final String PROPERTY_APP_VERSION = "appVersion";	//used for storing shared prefs
@@ -151,13 +152,49 @@ public class LocationService extends Service {
 	  }
 	} 
 	
-	public void doCommunication()
-	{
+	private void doCommunication()
+	{		
 		Log.v(TAG, "regid: " + regid);
 		
-	    locationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+		locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+
     	startLocationBackgroundTask(locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER));
-    	
+
+    	requestLocationUpdates();	
+	}
+	
+	public static void requestLocationUpdates() {
+
+		int minTimeBetweenUpdatesms = Integer.valueOf(context.getSharedPreferences(MainActivity.class.getSimpleName(), MODE_PRIVATE).getString("minTime", "180000"));
+		int minDistanceBetweenUpdatesMeters = Integer.valueOf(context.getSharedPreferences(MainActivity.class.getSimpleName(), MODE_PRIVATE).getString("minDistance", "500"));
+		
+		Log.v(TAG, "Time: " + minTimeBetweenUpdatesms + " and Distance: " + minDistanceBetweenUpdatesMeters);
+		
+		if (locationListener == null) {
+			locationListener = new LocationListener() {
+				@Override
+				public void onLocationChanged(Location location) {
+					startLocationBackgroundTask(location);						
+				}
+
+				@Override
+				public void onProviderDisabled(String provider) {		
+				}
+
+				@Override
+				public void onProviderEnabled(String provider) {		
+				}
+
+				@Override
+				public void onStatusChanged(String provider, int status, Bundle extras) {		
+				}
+			};
+		}
+		else
+		{
+			locationManager.removeUpdates(locationListener);
+		}
+			
     	Criteria criteria = new Criteria();
         
         criteria.setAccuracy(Criteria.ACCURACY_FINE);
@@ -166,28 +203,11 @@ public class LocationService extends Service {
         criteria.setSpeedRequired(false);
         criteria.setBearingRequired(false);
         criteria.setCostAllowed(false);
-
-		int minTimeBetweenUpdatesms = 1000 * 60;
-		int minDistanceBetweenUpdatesMeters = 100;
-
+		
 		String provider = locationManager.getBestProvider(criteria, true);
-		
 		Log.v(TAG, "Best provider: " + provider);
-				
-		locationManager.requestLocationUpdates(provider, minTimeBetweenUpdatesms, minDistanceBetweenUpdatesMeters, new LocationListener() {
-			public void onLocationChanged(Location location) {
-				startLocationBackgroundTask(location);				
-			}
 		
-			public void onProviderDisabled(String provider) {
-			}
-		
-			public void onProviderEnabled(String provider) {
-			}
-		
-			public void onStatusChanged(String provider, int status, Bundle extras) {	
-			}				
-		});
+		locationManager.requestLocationUpdates(provider, minTimeBetweenUpdatesms, minDistanceBetweenUpdatesMeters, locationListener);
 	}
 	
 	public static long calcMinutes(Date d1, Date d2) {
@@ -426,5 +446,4 @@ public class LocationService extends Service {
 	    }
 	    return true;
 	}
-
 }
