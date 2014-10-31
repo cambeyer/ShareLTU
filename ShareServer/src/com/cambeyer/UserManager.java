@@ -70,7 +70,7 @@ public class UserManager {
 		String result = "";
 		for (int i = 0; i < usersByRadius.size(); i++)
 		{
-			result += usersByRadius.get(i).uuid + "_" + usersByRadius.get(i).name.replace(",", "") + "|" + usersByRadius.get(i).model.replace(",",  "");
+			result += usersByRadius.get(i).uuid + "_" + usersByRadius.get(i).name.replace(",", "") + "|" + usersByRadius.get(i).model.replace(",",  "") + "|" + usersByRadius.get(i).lat + "|" + usersByRadius.get(i).lon;
 			if (i + 1 < usersByRadius.size())
 			{
 				result += ",";

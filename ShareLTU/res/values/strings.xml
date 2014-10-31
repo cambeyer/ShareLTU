@@ -3,6 +3,7 @@
 
     <string name="app_name">ShareLTU</string>
     <string name="view_downloads">View Previous Downloads</string>
+    <string name="settings">Settings</string>
     <string name="action_settings">Settings</string>
     <string name="empty_list">No Previous Downloads to Display</string>
     <string name="welcome_title">Welcome to ShareLTU</string>

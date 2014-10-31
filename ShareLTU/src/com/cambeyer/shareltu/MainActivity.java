@@ -311,6 +311,10 @@ public class MainActivity extends Activity {
 	public void downloadPage(View view) {
 	    startActivity(new Intent(this, DownloadActivity.class));
 	}
+	
+	public void settingsPage(View view) {
+	    startActivity(new Intent(this, SettingsActivity.class));
+	}
 		
 	public class AsyncLoader extends AsyncTask<Void, Void, Void>
     {        

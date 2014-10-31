@@ -54,6 +54,7 @@ public class LocationService extends Service {
     
     public static ArrayList<String> uuids = new ArrayList<String>();
     public static ArrayList<String> names = new ArrayList<String>();
+    public static ArrayList<Double> distances = new ArrayList<Double>();
 	
 	private LocationManager locationManager;
 	
@@ -249,6 +250,7 @@ public class LocationService extends Service {
 		        
 		        names.clear();
 		        uuids.clear();
+		        distances.clear();
 		        
 		        if (!result.isEmpty())
 		        {
@@ -257,12 +259,25 @@ public class LocationService extends Service {
 			        {
 			        	uuids.add(chunks[i].split("_", 2)[0]);
 			        	String tempName = chunks[i].split("_", 2)[1];
-			        	names.add(tempName.split("\\|", 2)[0] + " (" + tempName.split("\\|", 2)[1] + ")");
-		        }
+			        	names.add(tempName.split("\\|", 2)[0] + " (" + tempName.split("\\|", 2)[1].split("\\|", 2)[0] + ")");
+			        	double distance = distFrom(Double.valueOf(tempName.split("\\|", 2)[1].split("\\|", 2)[1].split("\\|", 2)[0]), Double.valueOf(tempName.split("\\|", 2)[1].split("\\|", 2)[1].split("\\|", 2)[1]), lastLocation.getLatitude(), lastLocation.getLongitude());
+			        	distances.add(distance);
+			        	Log.v(TAG, "Distance: " + distance);
+			        }
 		        }
             } catch (Exception e) {
             }
         }
+	}
+	
+	private static double distFrom(double lat1, double lng1, double lat2, double lng2) {
+		double earthRadius = 6371; //kilometers
+	    //double earthRadius = 3958.75; //miles
+	    double dLat = Math.toRadians(lat2-lat1);
+	    double dLng = Math.toRadians(lng2-lng1);
+	    double a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) * Math.sin(dLng/2) * Math.sin(dLng/2);
+	    double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+	    return earthRadius * c * 1000; //kilometers to meters
 	}
 	
 	public static void startLocationBackgroundTask(final Location location) {
